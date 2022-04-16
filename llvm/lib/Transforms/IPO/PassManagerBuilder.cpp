@@ -188,6 +188,12 @@ cl::opt<AttributorRunOption> AttributorRun(
                clEnumValN(AttributorRunOption::NONE, "none",
                           "disable attributor runs")));
 
+cl::opt<bool> AlternativeSLP("alternative-slp", cl::init(false), cl::Hidden,
+                        cl::desc("Run the alternative SLP extensions"));
+
+cl::opt<bool> SLPPreOpt("slp-pre-opt", cl::init(false), cl::Hidden,
+                        cl::desc("Run SLP pre-optimizations"));
+
 extern cl::opt<bool> EnableKnowledgeRetention;
 } // namespace llvm
 
@@ -603,9 +609,21 @@ void PassManagerBuilder::addVectorPasses(legacy::PassManagerBase &PM,
     PM.add(createBitTrackingDCEPass());
   }
 
-  // Optimize parallel scalar instruction chains into SIMD instructions.
+  // create more vectorization opportunities for SLP
+  if (SLPPreOpt) {
+    dbgs() << "Running slp pre optimizations\n";
+    PM.add(createLoopUnrollAndJamPass(OptLevel));
+    PM.add(createLoopUnrollPass(OptLevel, DisableUnrollLoops, ForgetAllSCEVInLoopUnroll));
+  }
+   // Optimize parallel scalar instruction chains into SIMD instructions.
   if (SLPVectorize) {
-    PM.add(createSLPVectorizerPass());
+    if (AlternativeSLP) {
+      dbgs() << "Adding alternative slp\n";
+      addExtensionsToPM(EP_AlternativeSLP, PM);
+    } else {
+      dbgs() << "Adding original SLP\n";
+      PM.add(createSLPVectorizerPass());
+    }
     if (OptLevel > 1 && ExtraVectorizerPasses)
       PM.add(createEarlyCSEPass());
   }

@@ -125,6 +125,10 @@ public:
     /// passes that
     /// run at Link Time, after Full Link Time Optimization.
     EP_FullLinkTimeOptimizationLast,
+
+    /// If SLP is enabled, and the alternative SLP flag is set, these extensions
+    /// will be added instead of SLP
+    EP_AlternativeSLP,
   };
 
   /// The Optimization Level - Specify the basic optimization level.
