@@ -11,6 +11,7 @@
 
 #include "llvm/ValueHolder.h"
 #include "llvm/SymbolTable.h"
+#include "llvm/SymTabValue.h"
 #include <algorithm>
 
 template<class ValueSubclass, class ItemParentType>

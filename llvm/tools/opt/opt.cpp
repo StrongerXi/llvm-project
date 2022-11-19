@@ -21,8 +21,8 @@
 //
 //===------------------------------------------------------------------------===
 
-#include <iostream.h>
-#include <fstream.h>
+#include <iostream>
+#include <fstream>
 #include "llvm/Module.h"
 #include "llvm/Bytecode/Reader.h"
 #include "llvm/Bytecode/Writer.h"
@@ -80,7 +80,7 @@ int main(int argc, char **argv) {
 
   if (Opts.getOutputFilename() != "-") {
     Out = new ofstream(Opts.getOutputFilename().c_str(), 
-                       (Opts.getForce() ? 0 : ios::noreplace)|ios::out);
+                       (Opts.getForce() ? 0 : 0)|ios::out);
     if (!Out->good()) {
       cerr << "Error opening " << Opts.getOutputFilename() 
            << "!\n";

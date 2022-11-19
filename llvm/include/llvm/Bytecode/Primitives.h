@@ -15,6 +15,7 @@
 #include "llvm/Tools/DataTypes.h"
 #include <string>
 #include <vector>
+using namespace std;
 
 //===----------------------------------------------------------------------===//
 //                             Reading Primitives

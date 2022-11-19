@@ -14,6 +14,8 @@
 #include "llvm/DerivedTypes.h"
 #include "ReaderInternals.h"
 
+#include <iostream>
+
 bool BytecodeParser::parseTypeConstant(const uchar *&Buf, const uchar *EndBuf,
 				       ConstPoolVal *&V) {
   const Type *Val = 0;

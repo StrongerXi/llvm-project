@@ -11,13 +11,7 @@
 
 class Module;
 class ToolCommandLine;
-class ParseException;
 
-
-// The useful interface defined by this file... Parse an ascii file, and return
-// the internal representation in a nice slice'n'dice'able representation.
-//
-Module *ParseAssemblyFile(const ToolCommandLine &Opts) throw (ParseException);
 
 //===------------------------------------------------------------------------===
 //                              Helper Classes
@@ -62,5 +56,10 @@ private :
 
   ParseException &operator=(const ParseException &E); // objects by reference
 };
+
+// The useful interface defined by this file... Parse an ascii file, and return
+// the internal representation in a nice slice'n'dice'able representation.
+//
+Module *ParseAssemblyFile(const ToolCommandLine &Opts) throw (ParseException);
 
 #endif

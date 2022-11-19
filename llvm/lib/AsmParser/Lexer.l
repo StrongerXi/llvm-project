@@ -23,6 +23,7 @@
 #include "llvm/Method.h"
 #include "llvm/Module.h"
 #include <list>
+#include <iostream>
 #include "llvmAsmParser.h"
 
 #define RET_TOK(type, Enum, sym) \

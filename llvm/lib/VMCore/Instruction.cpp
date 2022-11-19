@@ -8,8 +8,10 @@
 #include "llvm/BasicBlock.h"
 #include "llvm/Method.h"
 #include "llvm/SymbolTable.h"
-#include "llvm/iBinary.h"
+#include "llvm/iOperators.h"
 #include "llvm/iUnary.h"
+
+#include <iostream>
 
 Instruction::Instruction(const Type *ty, unsigned it, const string &Name) 
   : User(ty, Value::InstructionVal, Name) {

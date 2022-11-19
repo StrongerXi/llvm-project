@@ -207,7 +207,7 @@ const MethodType *MethodType::getMethodType(const Type *ReturnType,
 
 
 const ArrayType *ArrayType::getArrayType(const Type *ElementType, 
-					 int NumElements = -1) {
+					 int NumElements) {
   static vector<const ArrayType*> ExistingTypesCache;
 
   // Search cache for value...

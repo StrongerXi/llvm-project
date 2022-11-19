@@ -14,6 +14,7 @@
 #include "llvm/DerivedTypes.h"
 #include "llvm/ConstPoolVals.h"
 #include <map>
+#include <iostream>
 
 // processModule - Driver function to call all of my subclasses virtual methods.
 //

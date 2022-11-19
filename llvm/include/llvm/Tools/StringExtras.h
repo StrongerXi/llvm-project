@@ -10,6 +10,7 @@
 
 #include <string>
 #include "llvm/Tools/DataTypes.h"
+using namespace std;
 
 static inline string utostr(uint64_t X, bool isNeg = false) {
   char Buffer[40];
@@ -36,22 +37,23 @@ static inline string itostr(int64_t X) {
 }
 
 
-static inline string utostr(unsigned X, bool isNeg = false) {
-  char Buffer[20];
-  char *BufPtr = Buffer+19;
-
-  *BufPtr = 0;                  // Null terminate buffer...
-  if (X == 0) *--BufPtr = '0';  // Handle special case...
-
-  while (X) {
-    *--BufPtr = '0' + (X % 10);
-    X /= 10;
-  }
-
-  if (isNeg) *--BufPtr = '-';   // Add negative sign...
-
-  return string(BufPtr);
-}
+// creates ambiguity in yacc, even after changing unsigned to uint32_t, not sure why
+//static inline string utostr(uint32_t X, bool isNeg = false) {
+//  char Buffer[20];
+//  char *BufPtr = Buffer+19;
+//
+//  *BufPtr = 0;                  // Null terminate buffer...
+//  if (X == 0) *--BufPtr = '0';  // Handle special case...
+//
+//  while (X) {
+//    *--BufPtr = '0' + (X % 10);
+//    X /= 10;
+//  }
+//
+//  if (isNeg) *--BufPtr = '-';   // Add negative sign...
+//
+//  return string(BufPtr);
+//}
 
 static inline string itostr(int X) {
   if (X < 0) 

@@ -1,5 +1,5 @@
 LEVEL = ..
-DIRS = VMCore Analysis Assembly Bytecode Optimizations
+DIRS = VMCore Analysis AsmParser Bytecode Transforms
 
 include $(LEVEL)/Makefile.common
 

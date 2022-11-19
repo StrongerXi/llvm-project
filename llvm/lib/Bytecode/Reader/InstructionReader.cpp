@@ -16,6 +16,7 @@
 #include "llvm/iMemory.h"
 #include "llvm/DerivedTypes.h"
 #include "ReaderInternals.h"
+#include <iostream>
 
 bool BytecodeParser::ParseRawInst(const uchar *&Buf, const uchar *EndBuf, 
 				  RawInst &Result) {

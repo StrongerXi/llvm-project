@@ -177,6 +177,6 @@ void WriteBytecodeToFile(const Module *C, ostream &Out) {
   BytecodeWriter BCW(Buffer, C);
 
   // Okay, write the vector out to the ostream now...
-  Out.write(&Buffer[0], Buffer.size());
+  Out.write((char*)(&Buffer[0]), Buffer.size());
   Out.flush();
 }

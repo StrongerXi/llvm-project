@@ -185,7 +185,7 @@ ConstPoolVal *ConstPoolVal::getNullConstant(const Type *Ty) {
 //===----------------------------------------------------------------------===//
 //                             Normal Constructors
 
-ConstPoolBool::ConstPoolBool(bool V, const string &Name = "") 
+ConstPoolBool::ConstPoolBool(bool V, const string &Name)
   : ConstPoolVal(Type::BoolTy, Name) {
   Val = V;
 }

@@ -15,6 +15,7 @@
 
 #include <vector>
 #include <string>
+using namespace std;
 class Module;
 class Method;
 

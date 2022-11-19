@@ -4,7 +4,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "llvm/Opt/ConstantHandling.h"
+#include "llvm/ConstantHandling.h"
 
 //===----------------------------------------------------------------------===//
 //                             TemplateRules Class
@@ -29,7 +29,7 @@ class TemplateRules : public ConstRules {
     return SubClassName::Neg((const ArgType *)V);
   }
 
-  virtual ConstPoolVal *not(const ConstPoolVal *V) const {
+  virtual ConstPoolVal *lnot(const ConstPoolVal *V) const {
     return SubClassName::Not((const ArgType *)V);
   }
 

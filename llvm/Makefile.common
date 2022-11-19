@@ -40,12 +40,11 @@ install ::
 
 # Add -L options to the link command lines...
 LibPathsO = -L $(LEVEL)/lib/VMCore/Release \
-            -L $(LEVEL)/lib/Assembly/Parser/Release \
-            -L $(LEVEL)/lib/Assembly/Writer/Release \
+            -L $(LEVEL)/lib/AsmParser/Release \
             -L $(LEVEL)/lib/Analysis/Release \
             -L $(LEVEL)/lib/Bytecode/Writer/Release \
             -L $(LEVEL)/lib/Bytecode/Reader/Release \
-            -L $(LEVEL)/lib/Optimizations/Release
+            -L $(LEVEL)/lib/Transforms/Release
 
 LibPathsG = $(LibPathsO:Release=Debug)
 
@@ -53,7 +52,7 @@ LibPathsG = $(LibPathsO:Release=Debug)
 #Prof = -pg
 
 # TODO: Get rid of exceptions! : -fno-exceptions -fno-rtti
-CompileCommonOpts = $(Prof) -Wall -Winline -W  -Wwrite-strings -Wno-unused -I$(LEVEL)/include
+CompileCommonOpts = $(Prof) -Wall -Winline -W -std=c++03 -Wwrite-strings -Wno-unused -I$(LEVEL)/include
 
 # Compile a file, don't link...
 Compile  = $(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $(CompileCommonOpts)
@@ -67,8 +66,8 @@ LinkG    = $(Link) -g $(LibPathsG)
 LinkO    = $(Link) -O3 $(LibPathsO)
 
 # Create a .so file from a .cpp file...
-#MakeSO   = $(CXX) -shared $(Prof)
-MakeSO   = $(CXX) -G $(Prof)
+MakeSO   = $(CXX) -shared -undefined dynamic_lookup $(Prof)
+#MakeSO   = $(CXX) -G $(Prof)
 MakeSOG  = $(MakeSO) -g
 MakeSOO  = $(MakeSO) -O3
 

@@ -11,6 +11,8 @@
 #include "llvm/Type.h"
 #endif
 
+#include <iostream>
+
 SymbolTable::~SymbolTable() {
 #ifndef NDEBUG   // Only do this in -g mode...
   bool Good = true;

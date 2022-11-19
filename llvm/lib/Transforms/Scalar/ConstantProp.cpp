@@ -29,7 +29,7 @@
 #include "llvm/ConstPoolVals.h"
 #include "llvm/ConstantPool.h"
 #include "llvm/Opt/AllOpts.h"
-#include "llvm/Opt/ConstantHandling.h"
+#include "llvm/ConstantHandling.h"
 
 // Merge identical constant values in the constant pool.
 // 

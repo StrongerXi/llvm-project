@@ -20,7 +20,7 @@
 //                                Value Class
 //===----------------------------------------------------------------------===//
 
-Value::Value(const Type *ty, ValueTy vty, const string &name = "") : Name(name){
+Value::Value(const Type *ty, ValueTy vty, const string &name) : Name(name){
   Ty = ty;
   VTy = vty;
 }
@@ -102,7 +102,7 @@ void User::replaceUsesOfWith(Value *From, Value *To) {
 //
 template class ValueHolder<ConstPoolVal, SymTabValue>;
 
-SymTabValue::SymTabValue(const Type *Ty, ValueTy dty, const string &name = "") 
+SymTabValue::SymTabValue(const Type *Ty, ValueTy dty, const string &name)
   : Value(Ty, dty, name), ConstPool(this) { 
   ParentSymTab = SymTab = 0;
 }

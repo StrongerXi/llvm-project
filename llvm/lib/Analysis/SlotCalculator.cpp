@@ -18,6 +18,8 @@
 #include "llvm/iOther.h"
 #include "llvm/DerivedTypes.h"
 
+#include <iostream>
+
 SlotCalculator::SlotCalculator(const Module *M, bool IgnoreNamed) {
   IgnoreNamedNodes = IgnoreNamed;
   TheModule = M;

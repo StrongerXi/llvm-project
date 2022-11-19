@@ -24,6 +24,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <algorithm>
+#include <iostream>
 
 bool BytecodeParser::getTypeSlot(const Type *Ty, unsigned &Slot) {
   if (Ty->isPrimitiveType()) {

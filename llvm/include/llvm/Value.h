@@ -10,6 +10,7 @@
 
 #include <string>
 #include <list>
+using namespace std;
 
 class User;
 class Type;

@@ -78,7 +78,7 @@ private:
   Value      *getValue(const Type *Ty, unsigned num, bool Create = true);
   const Type *getType(unsigned ID);
 
-  bool insertValue(Value *D, vector<ValueList> &D);
+  bool insertValue(Value *val, vector<ValueList> &vl);
   bool postResolveValues(ValueTable &ValTab);
 
   bool getTypeSlot(const Type *Ty, unsigned &Slot);

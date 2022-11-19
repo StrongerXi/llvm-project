@@ -23,6 +23,7 @@
 #include "llvm/iTerminators.h"
 #include "llvm/iMemory.h"
 #include <list>
+#include <iostream>
 #include <utility>            // Get definition of pair class
 #include <stdio.h>            // This embarasment is due to our flex lexer...
 

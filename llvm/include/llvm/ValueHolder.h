@@ -13,6 +13,7 @@
 #define LLVM_VALUEHOLDER_H
 
 #include <vector>
+using namespace std;
 class SymTabValue;
 
 // ItemParentType ItemParent - I call setParent() on all of my 
@@ -56,8 +57,8 @@ public:
   // sub-Definition iterator code
   //===--------------------------------------------------------------------===//
   // 
-  typedef vector<ValueSubclass*>::iterator       iterator;
-  typedef vector<ValueSubclass*>::const_iterator const_iterator;
+  typedef typename vector<ValueSubclass*>::iterator       iterator;
+  typedef typename vector<ValueSubclass*>::const_iterator const_iterator;
 
   inline iterator       begin()       { return ValueList.begin(); }
   inline const_iterator begin() const { return ValueList.begin(); }

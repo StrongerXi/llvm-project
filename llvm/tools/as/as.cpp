@@ -9,8 +9,8 @@
 //
 //===------------------------------------------------------------------------===
 
-#include <iostream.h>
-#include <fstream.h>
+#include <iostream>
+#include <fstream>
 #include <string>
 #include "llvm/Module.h"
 #include "llvm/Assembly/Parser.h"
@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
   
     if (Opts.getOutputFilename() != "-") {
       Out = new ofstream(Opts.getOutputFilename().c_str(), 
-			 (Opts.getForce() ? 0 : ios::noreplace)|ios::out);
+			 (Opts.getForce() ? 0 : 0)|ios::out);
       if (!Out->good()) {
         cerr << "Error opening " << Opts.getOutputFilename() << "!\n";
 	delete C;

@@ -58,7 +58,7 @@ protected:
 public:
   // Unary Operators...
   virtual ConstPoolVal *neg(const ConstPoolVal *V) const = 0;
-  virtual ConstPoolVal *not(const ConstPoolVal *V) const = 0;
+  virtual ConstPoolVal *lnot(const ConstPoolVal *V) const = 0;
 
   // Binary Operators...
   virtual ConstPoolVal *add(const ConstPoolVal *V1, 
@@ -90,7 +90,7 @@ inline ConstPoolVal *operator-(const ConstPoolVal &V) {
 }
 
 inline ConstPoolVal *operator!(const ConstPoolVal &V) {
-  return ConstRules::get(V)->not(&V);
+  return ConstRules::get(V)->lnot(&V);
 }
 
 

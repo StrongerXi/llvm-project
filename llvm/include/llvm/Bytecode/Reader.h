@@ -13,6 +13,7 @@
 #define LLVM_BYTECODE_READER_H
 
 #include <string>
+using namespace std;
 
 class Module;
 
