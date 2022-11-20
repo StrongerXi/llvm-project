@@ -15,9 +15,9 @@
 #include "llvm/Value.h"
 
 class User : public Value {
-  User(const User &);             // Do not implement
+  User(const User &); // Do not implement
 public:
-  User(const Type *Ty, ValueTy vty, const string &name = "");
+  User(const Type *Ty, ValueTy vty, const std::string &name = "");
   virtual ~User() {}
 
   // if i > the number of operands, then getOperand() returns 0, and setOperand
@@ -29,11 +29,11 @@ public:
   virtual bool setOperand(unsigned i, Value *Val) = 0;
 
   // dropAllReferences() - This virtual function should be overridden to "let
-  // go" of all references that this user is maintaining.  This allows one to 
+  // go" of all references that this user is maintaining.  This allows one to
   // 'delete' a whole class at a time, even though there may be circular
   // references... first all references are dropped, and all use counts go to
   // zero.  Then everything is delete'd for real.  Note that no operations are
-  // valid on an object that has "dropped all references", except operator 
+  // valid on an object that has "dropped all references", except operator
   // delete.
   //
   virtual void dropAllReferences() = 0;

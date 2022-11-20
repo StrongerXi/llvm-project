@@ -1,6 +1,6 @@
 //===-- ParserInternals.h - Definitions internal to the parser ---*- C++ -*--=//
 //
-//  This header file defines the various variables that are shared among the 
+//  This header file defines the various variables that are shared among the
 //  different components of the parser...
 //
 //===----------------------------------------------------------------------===//
@@ -11,15 +11,15 @@
 #include <stdio.h>
 #define __STDC_LIMIT_MACROS
 
-#include "llvm/InstrTypes.h"
+#include "llvm/Assembly/Parser.h"
 #include "llvm/BasicBlock.h"
 #include "llvm/ConstPoolVals.h"
-#include "llvm/iOther.h"
+#include "llvm/InstrTypes.h"
 #include "llvm/Method.h"
-#include "llvm/Type.h"
-#include "llvm/Assembly/Parser.h"
 #include "llvm/Tools/CommandLine.h"
 #include "llvm/Tools/StringExtras.h"
+#include "llvm/Type.h"
+#include "llvm/iOther.h"
 
 class Module;
 
@@ -31,81 +31,98 @@ extern int llvmAsmlineno;
 extern const ToolCommandLine *CurOptions;
 Module *RunVMAsmParser(const ToolCommandLine &Opts, FILE *F);
 
-
 // ThrowException - Wrapper around the ParseException class that automatically
 // fills in file line number and column number and options info.
 //
-// This also helps me because I keep typing 'throw new ParseException' instead 
+// This also helps me because I keep typing 'throw new ParseException' instead
 // of just 'throw ParseException'... sigh...
 //
-static inline void ThrowException(const string &message) {
+static inline void ThrowException(const std::string &message) {
   // TODO: column number in exception
   throw ParseException(*CurOptions, message, llvmAsmlineno);
 }
 
 // ValID - Represents a reference of a definition of some sort.  This may either
-// be a numeric reference or a symbolic (%var) reference.  This is just a 
+// be a numeric reference or a symbolic (%var) reference.  This is just a
 // discriminated union.
 //
-// Note that I can't implement this class in a straight forward manner with 
-// constructors and stuff because it goes in a union, and GCC doesn't like 
+// Note that I can't implement this class in a straight forward manner with
+// constructors and stuff because it goes in a union, and GCC doesn't like
 // putting classes with ctor's in unions.  :(
 //
 struct ValID {
-  int Type;               // 0 = number, 1 = name, 2 = const pool, 
-                          // 3 = unsigned const pool, 4 = const string
+  int Type; // 0 = number, 1 = name, 2 = const pool,
+            // 3 = unsigned const pool, 4 = const std::string
   union {
-    int      Num;         // If it's a numeric reference
-    char    *Name;        // If it's a named reference.  Memory must be free'd.
-    int64_t  ConstPool64; // Constant pool reference.  This is the value
-    uint64_t UConstPool64;// Unsigned constant pool reference.
+    int Num;               // If it's a numeric reference
+    char *Name;            // If it's a named reference.  Memory must be free'd.
+    int64_t ConstPool64;   // Constant pool reference.  This is the value
+    uint64_t UConstPool64; // Unsigned constant pool reference.
   };
 
   static ValID create(int Num) {
-    ValID D; D.Type = 0; D.Num = Num; return D;
+    ValID D;
+    D.Type = 0;
+    D.Num = Num;
+    return D;
   }
 
   static ValID create(char *Name) {
-    ValID D; D.Type = 1; D.Name = Name; return D;
+    ValID D;
+    D.Type = 1;
+    D.Name = Name;
+    return D;
   }
 
   static ValID create(int64_t Val) {
-    ValID D; D.Type = 2; D.ConstPool64 = Val; return D;
+    ValID D;
+    D.Type = 2;
+    D.ConstPool64 = Val;
+    return D;
   }
 
   static ValID create(uint64_t Val) {
-    ValID D; D.Type = 3; D.UConstPool64 = Val; return D;
+    ValID D;
+    D.Type = 3;
+    D.UConstPool64 = Val;
+    return D;
   }
 
   static ValID create_conststr(char *Name) {
-    ValID D; D.Type = 4; D.Name = Name; return D;
+    ValID D;
+    D.Type = 4;
+    D.Name = Name;
+    return D;
   }
 
   inline void destroy() {
-    if (Type == 1 || Type == 4) free(Name);  // Free this strdup'd memory...
+    if (Type == 1 || Type == 4)
+      free(Name); // Free this strdup'd memory...
   }
 
   inline ValID copy() const {
-    if (Type != 1 && Type != 4) return *this;
+    if (Type != 1 && Type != 4)
+      return *this;
     ValID Result = *this;
     Result.Name = strdup(Name);
     return Result;
   }
 
-  inline string getName() const {
+  inline std::string getName() const {
     switch (Type) {
-    case 0:  return string("#") + itostr(Num);
-    case 1:  return Name;
-    case 4:  return string("\"") + Name + string("\"");
-    default: return string("%") + itostr(ConstPool64);
+    case 0:
+      return std::string("#") + itostr(Num);
+    case 1:
+      return Name;
+    case 4:
+      return std::string("\"") + Name + std::string("\"");
+    default:
+      return std::string("%") + itostr(ConstPool64);
     }
   }
 };
 
-
-
-template<class SuperType>
-class PlaceholderDef : public SuperType {
+template <class SuperType> class PlaceholderDef : public SuperType {
   ValID D;
   // TODO: Placeholder def should hold Line #/Column # of definition in case
   // there is an error resolving the defintition!
@@ -120,7 +137,7 @@ struct InstPlaceHolderHelper : public Instruction {
   virtual Instruction *clone() const { abort(); }
 
   inline virtual void dropAllReferences() {}
-  virtual string getOpcode() const { return "placeholder"; }
+  virtual std::string getOpcode() const { return "placeholder"; }
 
   // No "operands"...
   virtual Value *getOperand(unsigned i) { return 0; }
@@ -136,23 +153,25 @@ struct BBPlaceHolderHelper : public BasicBlock {
 };
 
 struct MethPlaceHolderHelper : public Method {
-  MethPlaceHolderHelper(const Type *Ty) 
-    : Method((const MethodType*)Ty) {
+  MethPlaceHolderHelper(const Type *Ty) : Method((const MethodType *)Ty) {
     assert(Ty->isMethodType() && "Method placeholders must be method types!");
   }
 };
 
-typedef PlaceholderDef<InstPlaceHolderHelper>  DefPlaceHolder;
-typedef PlaceholderDef<BBPlaceHolderHelper>    BBPlaceHolder;
-typedef PlaceholderDef<MethPlaceHolderHelper>  MethPlaceHolder;
-//typedef PlaceholderDef<ModulePlaceHolderHelper> ModulePlaceHolder;
+typedef PlaceholderDef<InstPlaceHolderHelper> DefPlaceHolder;
+typedef PlaceholderDef<BBPlaceHolderHelper> BBPlaceHolder;
+typedef PlaceholderDef<MethPlaceHolderHelper> MethPlaceHolder;
+// typedef PlaceholderDef<ModulePlaceHolderHelper> ModulePlaceHolder;
 
 static inline ValID &getValIDFromPlaceHolder(Value *Def) {
   switch (Def->getType()->getPrimitiveID()) {
-  case Type::LabelTyID:  return ((BBPlaceHolder*)Def)->getDef();
-  case Type::MethodTyID: return ((MethPlaceHolder*)Def)->getDef();
-//case Type::ModuleTyID:  return ((ModulePlaceHolder*)Def)->getDef();
-  default:               return ((DefPlaceHolder*)Def)->getDef();
+  case Type::LabelTyID:
+    return ((BBPlaceHolder *)Def)->getDef();
+  case Type::MethodTyID:
+    return ((MethPlaceHolder *)Def)->getDef();
+    // case Type::ModuleTyID:  return ((ModulePlaceHolder*)Def)->getDef();
+  default:
+    return ((DefPlaceHolder *)Def)->getDef();
   }
 }
 

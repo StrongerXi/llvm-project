@@ -1,5 +1,5 @@
 //===------------------------------------------------------------------------===
-// LLVM 'DIS' UTILITY 
+// LLVM 'DIS' UTILITY
 //
 // This utility may be invoked in the following manner:
 //  dis --help     - Output information about command line switches
@@ -9,12 +9,12 @@
 //
 //===------------------------------------------------------------------------===
 
-#include <iostream>
-#include <fstream>
-#include "llvm/Module.h"
 #include "llvm/Assembly/Writer.h"
 #include "llvm/Bytecode/Reader.h"
+#include "llvm/Module.h"
 #include "llvm/Tools/CommandLine.h"
+#include <fstream>
+#include <iostream>
 
 int main(int argc, char **argv) {
   ToolCommandLine Opts(argc, argv, false);
@@ -24,41 +24,44 @@ int main(int argc, char **argv) {
   //
   if (argc > 1) {
     for (int i = 1; i < argc; i++) {
-      if (string(argv[i]) != string("--help"))
-	cerr << argv[0] << ": argument not recognized: '" << argv[i] << "'!\n";
+      if (std::string(argv[i]) != std::string("--help"))
+        std::cerr << argv[0] << ": argument not recognized: '" << argv[i]
+                  << "'!\n";
     }
-    
-    cerr << argv[0] << " usage:\n"
-	 << "  " << argv[0] << " --help  - Print this usage information\n" 
-	 << "  " << argv[0] << " x.bc    - Parse <x.bc> file and output "
-	 << "assembly to x.ll\n"
-	 << "  " << argv[0] << "         - Parse stdin and write to stdout.\n";
+
+    std::cerr << argv[0] << " usage:\n"
+              << "  " << argv[0] << " --help  - Print this usage information\n"
+              << "  " << argv[0] << " x.bc    - Parse <x.bc> file and output "
+              << "assembly to x.ll\n"
+              << "  " << argv[0]
+              << "         - Parse stdin and write to stdout.\n";
     return 1;
   }
-  
-  ostream *Out = &cout;  // Default to printing to stdout...
+
+  std::ostream *Out = &std::cout; // Default to printing to stdout...
 
   Module *C = ParseBytecodeFile(Opts.getInputFilename());
   if (C == 0) {
-    cerr << "bytecode didn't read correctly.\n";
+    std::cerr << "bytecode didn't read correctly.\n";
     return 1;
   }
-  
+
   if (Opts.getOutputFilename() != "-") {
-    Out = new ofstream(Opts.getOutputFilename().c_str(), 
-                       (Opts.getForce() ? 0 : 0)|ios::out);
+    Out = new std::ofstream(Opts.getOutputFilename().c_str(),
+                            (Opts.getForce() ? 0 : 0) | std::ios::out);
     if (!Out->good()) {
-      cerr << "Error opening " << Opts.getOutputFilename() 
-           << ": sending to stdout instead!\n";
-      Out = &cout;
-      }
+      std::cerr << "Error opening " << Opts.getOutputFilename()
+                << ": sending to stdout instead!\n";
+      Out = &std::cout;
+    }
   }
-    
+
   // All that dis does is write the assembly out to a file... which is exactly
   // what the writer library is supposed to do...
   (*Out) << C;
   delete C;
 
-  if (Out != &cout) delete Out;
+  if (Out != &std::cout)
+    delete Out;
   return 0;
 }

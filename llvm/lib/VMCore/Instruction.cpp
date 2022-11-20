@@ -13,8 +13,8 @@
 
 #include <iostream>
 
-Instruction::Instruction(const Type *ty, unsigned it, const string &Name) 
-  : User(ty, Value::InstructionVal, Name) {
+Instruction::Instruction(const Type *ty, unsigned it, const std::string &Name)
+    : User(ty, Value::InstructionVal, Name) {
   Parent = 0;
   iType = it;
 }
@@ -24,12 +24,14 @@ Instruction::~Instruction() {
 }
 
 // Specialize setName to take care of symbol table majik
-void Instruction::setName(const string &name) {
-  BasicBlock *P = 0; Method *PP = 0;
+void Instruction::setName(const std::string &name) {
+  BasicBlock *P = 0;
+  Method *PP = 0;
   if ((P = getParent()) && (PP = P->getParent()) && hasName())
     PP->getSymbolTable()->remove(this);
   Value::setName(name);
-  if (PP && hasName()) PP->getSymbolTableSure()->insert(this);
+  if (PP && hasName())
+    PP->getSymbolTableSure()->insert(this);
 }
 
 Instruction *Instruction::getBinaryOperator(unsigned Op, Value *S1, Value *S2) {
@@ -48,16 +50,15 @@ Instruction *Instruction::getBinaryOperator(unsigned Op, Value *S1, Value *S2) {
     return new SetCondInst((BinaryOps)Op, S1, S2);
 
   default:
-    cerr << "Don't know how to GetBinaryOperator " << Op << endl;
+    std::cerr << "Don't know how to GetBinaryOperator " << Op << std::endl;
     return 0;
   }
 }
 
-
 Instruction *Instruction::getUnaryOperator(unsigned Op, Value *Source) {
   switch (Op) {
   default:
-    cerr << "Don't know how to GetUnaryOperator " << Op << endl;
+    std::cerr << "Don't know how to GetUnaryOperator " << Op << std::endl;
     return 0;
   }
 }

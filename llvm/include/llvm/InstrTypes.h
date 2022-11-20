@@ -1,7 +1,7 @@
 //===-- llvm/InstrTypes.h - Important Instruction subclasses -----*- C++ -*--=//
 //
 // This file defines various meta classes of instructions that exist in the VM
-// representation.  Specific concrete subclasses of these may be found in the 
+// representation.  Specific concrete subclasses of these may be found in the
 // i*.h files...
 //
 //===----------------------------------------------------------------------===//
@@ -20,7 +20,7 @@ class SymTabValue;
 //                            TerminatorInst Class
 //===----------------------------------------------------------------------===//
 
-// TerminatorInst - Subclasses of this class are all able to terminate a basic 
+// TerminatorInst - Subclasses of this class are all able to terminate a basic
 // block.  Thus, these are all the flow control type of operations.
 //
 class TerminatorInst : public Instruction {
@@ -31,7 +31,7 @@ public:
   // Terminators must implement the methods required by Instruction...
   virtual Instruction *clone() const = 0;
   virtual void dropAllReferences() = 0;
-  virtual string getOpcode() const = 0;
+  virtual std::string getOpcode() const = 0;
 
   virtual bool setOperand(unsigned i, Value *Val) = 0;
   virtual const Value *getOperand(unsigned i) const = 0;
@@ -44,10 +44,9 @@ public:
   virtual unsigned getNumSuccessors() const = 0;
 
   inline BasicBlock *getSuccessor(unsigned idx) {
-    return (BasicBlock*)((const TerminatorInst *)this)->getSuccessor(idx);
+    return (BasicBlock *)((const TerminatorInst *)this)->getSuccessor(idx);
   }
 };
-
 
 //===----------------------------------------------------------------------===//
 //                            UnaryOperator Class
@@ -55,21 +54,19 @@ public:
 
 class UnaryOperator : public Instruction {
   Use Source;
+
 public:
-  UnaryOperator(Value *S, unsigned iType, const string &Name = "")
-      : Instruction(S->getType(), iType, Name), Source(S, this) {
-  }
+  UnaryOperator(Value *S, unsigned iType, const std::string &Name = "")
+      : Instruction(S->getType(), iType, Name), Source(S, this) {}
   inline ~UnaryOperator() { dropAllReferences(); }
 
-  virtual Instruction *clone() const { 
+  virtual Instruction *clone() const {
     return Instruction::getUnaryOperator(getInstType(), Source);
   }
 
-  virtual void dropAllReferences() {
-    Source = 0;
-  }
+  virtual void dropAllReferences() { Source = 0; }
 
-  virtual string getOpcode() const = 0;
+  virtual std::string getOpcode() const = 0;
 
   virtual unsigned getNumOperands() const { return 1; }
   virtual const Value *getOperand(unsigned i) const {
@@ -77,13 +74,12 @@ public:
   }
   virtual bool setOperand(unsigned i, Value *Val) {
     // assert(Val && "operand must not be null!");
-    if (i) return false;
+    if (i)
+      return false;
     Source = Val;
     return true;
   }
 };
-
-
 
 //===----------------------------------------------------------------------===//
 //                           BinaryOperator Class
@@ -91,24 +87,23 @@ public:
 
 class BinaryOperator : public Instruction {
   Use Source1, Source2;
+
 public:
-  BinaryOperator(unsigned iType, Value *S1, Value *S2, 
-                 const string &Name = "") 
-    : Instruction(S1->getType(), iType, Name), Source1(S1, this), 
-      Source2(S2, this){
+  BinaryOperator(unsigned iType, Value *S1, Value *S2,
+                 const std::string &Name = "")
+      : Instruction(S1->getType(), iType, Name), Source1(S1, this),
+        Source2(S2, this) {
     assert(S1 && S2 && S1->getType() == S2->getType());
   }
   inline ~BinaryOperator() { dropAllReferences(); }
 
-  virtual Instruction *clone() const { 
+  virtual Instruction *clone() const {
     return Instruction::getBinaryOperator(getInstType(), Source1, Source2);
   }
 
-  virtual void dropAllReferences() {
-    Source1 = Source2 = 0;
-  }
+  virtual void dropAllReferences() { Source1 = Source2 = 0; }
 
-  virtual string getOpcode() const = 0;
+  virtual std::string getOpcode() const = 0;
 
   virtual unsigned getNumOperands() const { return 2; }
   virtual const Value *getOperand(unsigned i) const {
@@ -118,9 +113,9 @@ public:
   virtual bool setOperand(unsigned i, Value *Val) {
     // assert(Val && "operand must not be null!");
     if (i == 0) {
-      Source1 = Val; //assert(Val->getType() == Source2->getType());
+      Source1 = Val; // assert(Val->getType() == Source2->getType());
     } else if (i == 1) {
-      Source2 = Val; //assert(Val->getType() == Source1->getType());
+      Source2 = Val; // assert(Val->getType() == Source1->getType());
     } else {
       return false;
     }

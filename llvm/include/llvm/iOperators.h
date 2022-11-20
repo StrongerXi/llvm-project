@@ -18,31 +18,28 @@
 
 class AddInst : public BinaryOperator {
 public:
-  AddInst(Value *S1, Value *S2, const string &Name = "")
-      : BinaryOperator(Instruction::Add, S1, S2, Name) {
-  }
+  AddInst(Value *S1, Value *S2, const std::string &Name = "")
+      : BinaryOperator(Instruction::Add, S1, S2, Name) {}
 
-  virtual string getOpcode() const { return "add"; }
+  virtual std::string getOpcode() const { return "add"; }
 };
-
 
 class SubInst : public BinaryOperator {
 public:
-  SubInst(Value *S1, Value *S2, const string &Name = "") 
-    : BinaryOperator(Instruction::Sub, S1, S2, Name) {
-  }
+  SubInst(Value *S1, Value *S2, const std::string &Name = "")
+      : BinaryOperator(Instruction::Sub, S1, S2, Name) {}
 
-  virtual string getOpcode() const { return "sub"; }
+  virtual std::string getOpcode() const { return "sub"; }
 };
-
 
 class SetCondInst : public BinaryOperator {
   BinaryOps OpType;
-public:
-  SetCondInst(BinaryOps opType, Value *S1, Value *S2, 
-	      const string &Name = "");
 
-  virtual string getOpcode() const;
+public:
+  SetCondInst(BinaryOps opType, Value *S1, Value *S2,
+              const std::string &Name = "");
+
+  virtual std::string getOpcode() const;
 };
 
 #endif

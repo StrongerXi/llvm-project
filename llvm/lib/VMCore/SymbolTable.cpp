@@ -7,20 +7,21 @@
 #include "llvm/SymbolTable.h"
 #include "llvm/InstrTypes.h"
 #ifndef NDEBUG
-#include "llvm/BasicBlock.h"   // Required for assertions to work.
+#include "llvm/BasicBlock.h" // Required for assertions to work.
 #include "llvm/Type.h"
 #endif
 
 #include <iostream>
 
 SymbolTable::~SymbolTable() {
-#ifndef NDEBUG   // Only do this in -g mode...
+#ifndef NDEBUG // Only do this in -g mode...
   bool Good = true;
   for (iterator i = begin(); i != end(); i++) {
     if (i->second.begin() != i->second.end()) {
       for (type_iterator I = i->second.begin(); I != i->second.end(); I++)
-        cerr << "Value still in symbol table! Type = " << i->first->getName() 
-             << "  Name = " << I->first << endl;
+        std::cerr << "Value still in symbol table! Type = "
+                  << i->first->getName() << "  Name = " << I->first
+                  << std::endl;
       Good = false;
     }
   }
@@ -33,12 +34,11 @@ SymbolTable::type_iterator SymbolTable::type_find(const Value *D) {
   return type_find(D->getType(), D->getName());
 }
 
-
 // find - returns end(Ty->getIDNumber()) on failure...
-SymbolTable::type_iterator SymbolTable::type_find(const Type *Ty, 
-                                                  const string &Name) {
+SymbolTable::type_iterator SymbolTable::type_find(const Type *Ty,
+                                                  const std::string &Name) {
   iterator I = find(Ty);
-  if (I == end()) {      // Not in collection yet... insert dummy entry
+  if (I == end()) { // Not in collection yet... insert dummy entry
     (*this)[Ty] = VarMap();
     I = find(Ty);
     assert(I != end() && "How did insert fail?");
@@ -47,13 +47,12 @@ SymbolTable::type_iterator SymbolTable::type_find(const Type *Ty,
   return I->second.find(Name);
 }
 
-
 // lookup - Returns null on failure...
-Value *SymbolTable::lookup(const Type *Ty, const string &Name) {
+Value *SymbolTable::lookup(const Type *Ty, const std::string &Name) {
   iterator I = find(Ty);
-  if (I != end()) {                      // We have symbols in that plane...
+  if (I != end()) { // We have symbols in that plane...
     type_iterator J = I->second.find(Name);
-    if (J != I->second.end())            // and the name is in our hash table...
+    if (J != I->second.end()) // and the name is in our hash table...
       return J->second;
   }
 
@@ -62,18 +61,17 @@ Value *SymbolTable::lookup(const Type *Ty, const string &Name) {
 
 void SymbolTable::remove(Value *N) {
   assert(N->hasName() && "Value doesn't have name!");
-  assert(type_find(N) != type_end(N->getType()) && 
+  assert(type_find(N) != type_end(N->getType()) &&
          "Value not in symbol table!");
   type_remove(type_find(N));
 }
-
 
 #define DEBUG_SYMBOL_TABLE 0
 
 Value *SymbolTable::type_remove(const type_iterator &It) {
   Value *Result = It->second;
 #if DEBUG_SYMBOL_TABLE
-  cerr << this << " Removing Value: " << Result->getName() << endl;
+  std::cerr << this << " Removing Value: " << Result->getName() << std::endl;
 #endif
 
   find(Result->getType())->second.erase(It);
@@ -86,18 +84,18 @@ void SymbolTable::insert(Value *N) {
 
   // TODO: The typeverifier should catch this when its implemented
   if (lookup(N->getType(), N->getName())) {
-    cerr << "SymbolTable WARNING: Name already in symbol table: '" 
-         << N->getName() << "'\n";
-    abort();  // TODO: REMOVE THIS
+    std::cerr << "SymbolTable WARNING: Name already in symbol table: '"
+              << N->getName() << "'" << std::endl;
+    abort(); // TODO: REMOVE THIS
   }
 
 #if DEBUG_SYMBOL_TABLE
-  cerr << this << " Inserting definition: " << N->getName() << ": " 
-       << N->getType()->getName() << endl;
+  std::cerr << this << " Inserting definition: " << N->getName() << ": "
+            << N->getType()->getName() << std::endl;
 #endif
 
   iterator I = find(N->getType());
-  if (I == end()) {      // Not in collection yet... insert dummy entry
+  if (I == end()) { // Not in collection yet... insert dummy entry
     (*this)[N->getType()] = VarMap();
     I = find(N->getType());
     assert(I != end() && "How did insert fail?");
@@ -105,4 +103,3 @@ void SymbolTable::insert(Value *N) {
 
   I->second.insert(make_pair(N->getName(), N));
 }
-

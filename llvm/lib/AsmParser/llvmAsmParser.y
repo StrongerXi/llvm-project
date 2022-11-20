@@ -37,13 +37,13 @@ const ToolCommandLine *CurOptions = 0;
 // This contains info used when building the body of a method.  It is destroyed
 // when the method is completed.
 //
-typedef vector<Value *> ValueList;           // Numbered defs
-static void ResolveDefinitions(vector<ValueList> &LateResolvers);
+typedef std::vector<Value *> ValueList;           // Numbered defs
+static void ResolveDefinitions(std::vector<ValueList> &LateResolvers);
 
 static struct PerModuleInfo {
   Module *CurrentModule;
-  vector<ValueList> Values;     // Module level numbered definitions
-  vector<ValueList> LateResolveValues;
+  std::vector<ValueList> Values;     // Module level numbered definitions
+  std::vector<ValueList> LateResolveValues;
 
   void ModuleDone() {
     // If we could not resolve some blocks at parsing time (forward branches)
@@ -58,8 +58,8 @@ static struct PerModuleInfo {
 static struct PerMethodInfo {
   Method *CurrentMethod;         // Pointer to current method being created
 
-  vector<ValueList> Values;          // Keep track of numbered definitions
-  vector<ValueList> LateResolveValues;
+  std::vector<ValueList> Values;          // Keep track of numbered definitions
+  std::vector<ValueList> LateResolveValues;
 
   inline PerMethodInfo() {
     CurrentMethod = 0;
@@ -86,7 +86,7 @@ static struct PerMethodInfo {
 //               Code to handle definitions of all the types
 //===----------------------------------------------------------------------===//
 
-static void InsertValue(Value *D, vector<ValueList> &ValueTab = CurMeth.Values) {
+static void InsertValue(Value *D, std::vector<ValueList> &ValueTab = CurMeth.Values) {
   if (!D->hasName()) {             // Is this a numbered definition?
     unsigned type = D->getType()->getUniqueID();
     if (ValueTab.size() <= type)
@@ -122,7 +122,7 @@ static Value *getVal(const Type *Type, ValID &D,
     return CurMeth.Values[type][Num];
   }
   case 1: {                // Is it a named definition?
-    string Name(D.Name);
+    std::string Name(D.Name);
     SymbolTable *SymTab = 0;
     if (CurMeth.CurrentMethod) 
       SymTab = CurMeth.CurrentMethod->getSymbolTable();
@@ -141,7 +141,7 @@ static Value *getVal(const Type *Type, ValID &D,
 
   case 2:                 // Is it a constant pool reference??
   case 3:                 // Is it an unsigned const pool reference?
-  case 4:{                // Is it a string const pool reference?
+  case 4:{                // Is it a std::string const pool reference?
     ConstPoolVal *CPV = 0;
 
     // Check to make sure that "Type" is an integral type, and that our 
@@ -168,10 +168,10 @@ static Value *getVal(const Type *Type, ValID &D,
       }
       break;
     case 4:
-      cerr << "FIXME: TODO: String constants [sbyte] not implemented yet!\n";
+      std::cerr << "FIXME: TODO: String constants [sbyte] not implemented yet!\n";
       abort();
       //CPV = new ConstPoolString(D.Name);
-      D.destroy();   // Free the string memory
+      D.destroy();   // Free the std::string memory
       break;
     }
     assert(CPV && "How did we escape creating a constant??");
@@ -235,7 +235,7 @@ static Value *getVal(const Type *Type, ValID &D,
 // time (forward branches, phi functions for loops, etc...) resolve the 
 // defs now...
 //
-static void ResolveDefinitions(vector<ValueList> &LateResolvers) {
+static void ResolveDefinitions(std::vector<ValueList> &LateResolvers) {
   // Loop over LateResolveDefs fixing up stuff that couldn't be resolved
   for (unsigned ty = 0; ty < LateResolvers.size(); ty++) {
     while (!LateResolvers[ty].empty()) {
@@ -267,7 +267,7 @@ static void ResolveDefinitions(vector<ValueList> &LateResolvers) {
 // multiple references to %4, for example will all get merged.
 //
 static ConstPoolVal *addConstValToConstantPool(ConstPoolVal *C) {
-  vector<ValueList> &ValTab = CurMeth.CurrentMethod ? 
+  std::vector<ValueList> &ValTab = CurMeth.CurrentMethod ? 
                                   CurMeth.Values : CurModule.Values;
   ConstantPool &CP = CurMeth.CurrentMethod ? 
                           CurMeth.CurrentMethod->getConstantPool() : 
@@ -280,7 +280,7 @@ static ConstPoolVal *addConstValToConstantPool(ConstPoolVal *C) {
       // InsertValue requires that the value have no name to insert correctly
       // (because we want to fill the slot this constant would have filled)
       //
-      string Name = CPV->getName();
+      std::string Name = CPV->getName();
       CPV->setName("");
       InsertValue(CPV, ValTab);
       CPV->setName(Name);
@@ -345,11 +345,11 @@ Module *RunVMAsmParser(const ToolCommandLine &Opts, FILE *F) {
   ConstPoolVal            *ConstVal;
   const Type              *TypeVal;
 
-  list<MethodArgument*>   *MethodArgList;
-  list<Value*>            *ValueList;
-  list<const Type*>       *TypeList;
-  list<pair<ConstPoolVal*, BasicBlock*> > *JumpTable;
-  vector<ConstPoolVal*>   *ConstVector;
+  std::list<MethodArgument*>   *MethodArgList;
+  std::list<Value*>            *ValueList;
+  std::list<const Type*>       *TypeList;
+  std::list<std::pair<ConstPoolVal*, BasicBlock*> > *JumpTable;
+  std::vector<ConstPoolVal*>   *ConstVector;
 
   int64_t                  SInt64Val;
   uint64_t                 UInt64Val;
@@ -457,7 +457,7 @@ Types     : LONG | ULONG | FLOAT | DOUBLE | STRING | TYPE | LABEL
 // TypesV includes all of 'Types', but it also includes the void type.
 TypesV    : Types | VOID
 
-// Operations that are notably excluded from this list include: 
+// Operations that are notably excluded from this std::list include: 
 // RET, BR, & SWITCH because they end basic blocks and are treated specially.
 //
 UnaryOps  : NEG | NOT | TOINT | TOUINT
@@ -494,7 +494,7 @@ ConstVal : SIntType EINT64VAL {     // integral constants
     $$ = new ConstPoolBool(false);
   }
   | STRING STRINGCONSTANT {         // String constants
-    cerr << "FIXME: TODO: String constants [sbyte] not implemented yet!\n";
+    std::cerr << "FIXME: TODO: String constants [sbyte] not implemented yet!\n";
     abort();
     //$$ = new ConstPoolString($2);
     free($2);
@@ -516,7 +516,7 @@ ConstVal : SIntType EINT64VAL {     // integral constants
     delete $5;
   }
   | '[' Types ']' '[' ']' {                  // Empty array constant
-    vector<ConstPoolVal*> Empty;
+    std::vector<ConstPoolVal*> Empty;
     $$ = new ConstPoolArray(ArrayType::getArrayType($2), Empty);
   }
   | '[' EUINT64VAL 'x' Types ']' '[' ConstVector ']' {
@@ -541,7 +541,7 @@ ConstVal : SIntType EINT64VAL {     // integral constants
     if ($2 != 0) 
       ThrowException("Type mismatch: constant sized array initialized with 0"
 		     " arguments, but has size of " + itostr((int)$2) + "!");
-    vector<ConstPoolVal*> Empty;
+    std::vector<ConstPoolVal*> Empty;
     $$ = new ConstPoolArray(ArrayType::getArrayType($4, 0), Empty);
   }
   | '{' TypeList '}' '{' ConstVector '}' {
@@ -555,7 +555,7 @@ ConstVal : SIntType EINT64VAL {     // integral constants
   | '{' '}' '{' '}' {
     const StructType *St = 
       StructType::getStructType(StructType::ElementTypes());
-    vector<ConstPoolVal*> Empty;
+    std::vector<ConstPoolVal*> Empty;
     $$ = new ConstPoolStruct(St, Empty);
   }
 /*
@@ -570,7 +570,7 @@ ConstVector : ConstVector ',' ConstVal {
     ($$ = $1)->push_back(addConstValToConstantPool($3));
   }
   | ConstVal {
-    $$ = new vector<ConstPoolVal*>();
+    $$ = new std::vector<ConstPoolVal*>();
     $$->push_back(addConstValToConstantPool($1));
   }
 
@@ -583,7 +583,7 @@ ConstPool : ConstPool OptAssign ConstVal {
 
     addConstValToConstantPool($3);
   }
-  | /* empty: end of list */ { 
+  | /* empty: end of std::list */ { 
   }
 
 
@@ -619,7 +619,7 @@ ArgVal : Types OptVAR_ID {
   $$ = new MethodArgument($1);
   if ($2) {      // Was the argument named?
     $$->setName($2); 
-    free($2);    // The string was strdup'd, so free it now.
+    free($2);    // The std::string was strdup'd, so free it now.
   }
 }
 
@@ -628,7 +628,7 @@ ArgListH : ArgVal ',' ArgListH {
     $3->push_front($1);
   }
   | ArgVal {
-    $$ = new list<MethodArgument*>();
+    $$ = new std::list<MethodArgument*>();
     $$->push_front($1);
   }
 
@@ -642,7 +642,7 @@ ArgList : ArgListH {
 MethodHeaderH : TypesV STRINGCONSTANT '(' ArgList ')' {
   MethodType::ParamTypes ParamTypeList;
   if ($4)
-    for (list<MethodArgument*>::iterator I = $4->begin(); I != $4->end(); I++)
+    for (std::list<MethodArgument*>::iterator I = $4->begin(); I != $4->end(); I++)
       ParamTypeList.push_back((*I)->getType());
 
   const MethodType *MT = MethodType::getMethodType($1, ParamTypeList);
@@ -658,11 +658,11 @@ MethodHeaderH : TypesV STRINGCONSTANT '(' ArgList ')' {
   if ($4) {        // Is null if empty...
     Method::ArgumentListType &ArgList = M->getArgumentList();
 
-    for (list<MethodArgument*>::iterator I = $4->begin(); I != $4->end(); I++) {
+    for (std::list<MethodArgument*>::iterator I = $4->begin(); I != $4->end(); I++) {
       InsertValue(*I);
       ArgList.push_back(*I);
     }
-    delete $4;                     // We're now done with the argument list
+    delete $4;                     // We're now done with the argument std::list
   }
 }
 
@@ -691,7 +691,7 @@ ConstValueRef : ESINT64VAL {    // A reference to a direct constant
   | FALSE {
     $$ = ValID::create((int64_t)0);
   }
-  | STRINGCONSTANT {        // Quoted strings work too... especially for methods
+  | STRINGCONSTANT {        // Quoted std::strings work too... especially for methods
     $$ = ValID::create_conststr($1);
   }
 
@@ -723,7 +723,7 @@ Types : ValueRef {
     $$ = MethodType::getMethodType($1, Params);
   }
   | TypesV '(' ')' {               // Method derived type?
-    MethodType::ParamTypes Params;     // Empty list
+    MethodType::ParamTypes Params;     // Empty std::list
     $$ = MethodType::getMethodType($1, Params);
   }
   | '[' Types ']' {
@@ -746,7 +746,7 @@ Types : ValueRef {
 
 
 TypeList : Types {
-    $$ = new list<const Type*>();
+    $$ = new std::list<const Type*>();
     $$->push_back($1);
   }
   | TypeList ',' Types {
@@ -808,7 +808,7 @@ BBTerminatorInst : RET Types ValueRef {              // Return with a result...
                                    (BasicBlock*)getVal(Type::LabelTy, $6));
     $$ = S;
 
-    list<pair<ConstPoolVal*, BasicBlock*> >::iterator I = $8->begin(), 
+    std::list<std::pair<ConstPoolVal*, BasicBlock*> >::iterator I = $8->begin(), 
                                                       end = $8->end();
     for (; I != end; I++)
       S->dest_push_back(I->first, I->second);
@@ -820,16 +820,16 @@ JumpTable : JumpTable IntType ConstValueRef ',' LABEL ValueRef {
     if (V == 0)
       ThrowException("May only switch on a constant pool value!");
 
-    $$->push_back(make_pair(V, (BasicBlock*)getVal($5, $6)));
+    $$->push_back(std::make_pair(V, (BasicBlock*)getVal($5, $6)));
   }
   | IntType ConstValueRef ',' LABEL ValueRef {
-    $$ = new list<pair<ConstPoolVal*, BasicBlock*> >();
+    $$ = new std::list<std::pair<ConstPoolVal*, BasicBlock*> >();
     ConstPoolVal *V = (ConstPoolVal*)getVal($1, $2, true);
 
     if (V == 0)
       ThrowException("May only switch on a constant pool value!");
 
-    $$->push_back(make_pair(V, (BasicBlock*)getVal($4, $5)));
+    $$->push_back(std::make_pair(V, (BasicBlock*)getVal($4, $5)));
   }
 
 Inst : OptAssign InstVal {
@@ -841,7 +841,7 @@ Inst : OptAssign InstVal {
 }
 
 ValueRefList : Types ValueRef {    // Used for PHI nodes and call statements...
-    $$ = new list<Value*>();
+    $$ = new std::list<Value*>();
     $$->push_back(getVal($1, $2));
   }
   | ValueRefList ',' ValueRef {
@@ -869,7 +869,7 @@ InstVal : BinaryOps Types ValueRef ',' ValueRef {
       ((PHINode*)$$)->addIncoming($2->front());
       $2->pop_front();
     }
-    delete $2;  // Free the list...
+    delete $2;  // Free the std::list...
   } 
   | CALL Types ValueRef '(' ValueRefListE ')' {
     if (!$2->isMethodType())
@@ -883,7 +883,7 @@ InstVal : BinaryOps Types ValueRef ',' ValueRef {
       ThrowException("Cannot call: " + $3.getName() + "!");
 
     // Create or access a new type that corresponds to the function call...
-    vector<Value *> Params;
+    std::vector<Value *> Params;
 
     if ($5) {
       // Pull out just the arguments...
@@ -950,6 +950,6 @@ MemoryInst : MALLOC Types {
 
 %%
 int yyerror(char *ErrorMsg) {
-  ThrowException(string("Parse error: ") + ErrorMsg);
+  ThrowException(std::string("Parse error: ") + ErrorMsg);
   return 0;
 }

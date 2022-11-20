@@ -8,41 +8,40 @@
 //   * merges a basic block into its predecessor if there is only one and the
 //     predecessor only has one successor.
 //
-// TODO: This should REALLY be recursive instead of iterative.  Right now, we 
+// TODO: This should REALLY be recursive instead of iterative.  Right now, we
 // scan linearly through values, removing unused ones as we go.  The problem is
 // that this may cause other earlier values to become unused.  To make sure that
-// we get them all, we iterate until things stop changing.  Instead, when 
+// we get them all, we iterate until things stop changing.  Instead, when
 // removing a value, recheck all of its operands to see if they are now unused.
 // Piece of cake, and more efficient as well.
 //
 //===----------------------------------------------------------------------===//
 
-#include "llvm/Module.h"
-#include "llvm/Method.h"
 #include "llvm/BasicBlock.h"
-#include "llvm/iTerminators.h"
+#include "llvm/Method.h"
+#include "llvm/Module.h"
 #include "llvm/Opt/AllOpts.h"
+#include "llvm/iTerminators.h"
 
-struct ConstPoolDCE { 
+struct ConstPoolDCE {
   enum { EndOffs = 0 };
-  static bool isDCEable(const Value *) { return true; } 
+  static bool isDCEable(const Value *) { return true; }
 };
 
 struct BasicBlockDCE {
   enum { EndOffs = 1 };
-  static bool isDCEable(const Instruction *I) {
-    return !I->hasSideEffects();
-  }
+  static bool isDCEable(const Instruction *I) { return !I->hasSideEffects(); }
 };
 
-template<class ValueSubclass, class ItemParentType, class DCEController>
-static bool RemoveUnusedDefs(ValueHolder<ValueSubclass, ItemParentType> &Vals, 
-			     DCEController DCEControl) {
+template <class ValueSubclass, class ItemParentType, class DCEController>
+static bool RemoveUnusedDefs(ValueHolder<ValueSubclass, ItemParentType> &Vals,
+                             DCEController /* DCEControl */) {
   bool Changed = false;
   typedef ValueHolder<ValueSubclass, ItemParentType> Container;
 
   int Offset = DCEController::EndOffs;
-  for (typename Container::iterator DI = Vals.begin(); DI != Vals.end()-Offset; ) {
+  for (typename Container::iterator DI = Vals.begin();
+       DI != Vals.end() - Offset;) {
     // Look for un"used" definitions...
     if ((*DI)->use_empty() && DCEController::isDCEable(*DI)) {
       // Bye bye
@@ -55,7 +54,6 @@ static bool RemoveUnusedDefs(ValueHolder<ValueSubclass, ItemParentType> &Vals,
   return Changed;
 }
 
-
 bool DoRemoveUnusedConstants(SymTabValue *S) {
   bool Changed = false;
   ConstantPool &CP = S->getConstantPool();
@@ -64,25 +62,25 @@ bool DoRemoveUnusedConstants(SymTabValue *S) {
   return Changed;
 }
 
-
 static void ReplaceUsesWithConstant(Instruction *I) {
   // Get the method level constant pool
   ConstantPool &CP = I->getParent()->getParent()->getConstantPool();
 
   ConstPoolVal *CPV = 0;
   ConstantPool::PlaneType *P;
-  if (!CP.getPlane(I->getType(), P)) {  // Does plane exist?
+  if (!CP.getPlane(I->getType(), P)) { // Does plane exist?
     // Yes, is it empty?
-    if (!P->empty()) CPV = P->front();
+    if (!P->empty())
+      CPV = P->front();
   }
 
   if (CPV == 0) { // We don't have an existing constant to reuse.  Just add one.
-    CPV = ConstPoolVal::getNullConstant(I->getType());  // Create a new constant
+    CPV = ConstPoolVal::getNullConstant(I->getType()); // Create a new constant
 
     // Add the new value to the constant pool...
     CP.insert(CPV);
   }
-  
+
   // Make all users of this instruction reference the constant instead
   I->replaceAllUsesWith(CPV);
 }
@@ -101,26 +99,27 @@ static bool DoDCEPass(Method *M) {
   //
   for (BBIt = BBs.begin(), ++BBIt; BBIt != BBs.end(); BBIt++) {
     BasicBlock *BB = *BBIt;
-    assert(BB->getTerminator() && 
-	   "Degenerate basic block encountered!");  // Empty bb???
+    assert(BB->getTerminator() &&
+           "Degenerate basic block encountered!"); // Empty bb???
 
     if (BB->pred_begin() == BB->pred_end() &&
-	!BB->hasConstantPoolReferences()) {
+        !BB->hasConstantPoolReferences()) {
 
       while (!BB->getInstList().empty()) {
-	Instruction *I = BB->getInstList().front();
-	// If this instruction is used, replace uses with an arbitrary
-	// constant value.  Because control flow can't get here, we don't care
-	// what we replace the value with.
-	if (!I->use_empty()) ReplaceUsesWithConstant(I);
+        Instruction *I = BB->getInstList().front();
+        // If this instruction is used, replace uses with an arbitrary
+        // constant value.  Because control flow can't get here, we don't care
+        // what we replace the value with.
+        if (!I->use_empty())
+          ReplaceUsesWithConstant(I);
 
-	// Remove the instruction from the basic block
-	BasicBlock::InstListType::iterator f = BB->getInstList().begin();
-	delete BB->getInstList().remove(f);
+        // Remove the instruction from the basic block
+        BasicBlock::InstListType::iterator f = BB->getInstList().begin();
+        delete BB->getInstList().remove(f);
       }
 
       delete BBs.remove(BBIt);
-      ++BBIt;  // remove puts use on the previous block, we want the next one
+      ++BBIt; // remove puts use on the previous block, we want the next one
       Changed = true;
     }
   }
@@ -133,16 +132,17 @@ static bool DoDCEPass(Method *M) {
 
     // Is there exactly one predecessor to this block?
     BasicBlock::pred_iterator PI(BB->pred_begin());
-    if (PI != BB->pred_end() && ++PI == BB->pred_end() && 
-	!BB->hasConstantPoolReferences()) {
+    if (PI != BB->pred_end() && ++PI == BB->pred_end() &&
+        !BB->hasConstantPoolReferences()) {
       BasicBlock *Pred = *BB->pred_begin();
       TerminatorInst *Term = Pred->getTerminator();
-      if (Term == 0) continue; // Err... malformed basic block!
+      if (Term == 0)
+        continue; // Err... malformed basic block!
 
       // Is it an unconditional branch?
       if (Term->getInstType() != Instruction::Br ||
-          !((BranchInst*)Term)->isUnconditional())
-        continue;  // Nope, maybe next time...
+          !((BranchInst *)Term)->isUnconditional())
+        continue; // Nope, maybe next time...
 
       Changed = true;
 
@@ -151,10 +151,10 @@ static bool DoDCEPass(Method *M) {
 
       // Move all definitions in the predecessor to the successor...
       BasicBlock::InstListType::iterator DI = Pred->getInstList().end();
-      assert(Pred->getTerminator() && 
-	     "Degenerate basic block encountered!");  // Empty bb???      
-      delete Pred->getInstList().remove(--DI); // Remove terminator
-      
+      assert(Pred->getTerminator() &&
+             "Degenerate basic block encountered!"); // Empty bb???
+      delete Pred->getInstList().remove(--DI);       // Remove terminator
+
       while (Pred->getInstList().begin() != (DI = Pred->getInstList().end())) {
         Instruction *Def = Pred->getInstList().remove(--DI); // Remove from end
         BB->getInstList().push_front(Def);                   // Add to front...
@@ -164,7 +164,8 @@ static bool DoDCEPass(Method *M) {
       BBs.remove(Pred);
 
       // Always inherit predecessors name if it exists...
-      if (Pred->hasName()) BB->setName(Pred->getName());
+      if (Pred->hasName())
+        BB->setName(Pred->getName());
 
       // So long you waste of a basic block you...
       delete Pred;
@@ -176,18 +177,19 @@ static bool DoDCEPass(Method *M) {
   return Changed;
 }
 
-
 // It is possible that we may require multiple passes over the code to fully
 // eliminate dead code.  Iterate until we are done.
 //
 bool DoDeadCodeElimination(Method *M) {
   bool Changed = false;
-  while (DoDCEPass(M)) Changed = true;
+  while (DoDCEPass(M))
+    Changed = true;
   return Changed;
 }
 
-bool DoDeadCodeElimination(Module *C) { 
+bool DoDeadCodeElimination(Module *C) {
   bool Val = ApplyOptToAllMethods(C, DoDeadCodeElimination);
-  while (DoRemoveUnusedConstants(C)) Val = true;
+  while (DoRemoveUnusedConstants(C))
+    Val = true;
   return Val;
 }

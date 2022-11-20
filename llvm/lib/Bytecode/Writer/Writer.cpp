@@ -21,17 +21,17 @@
 //===----------------------------------------------------------------------===//
 
 #include "WriterInternals.h"
-#include "llvm/Module.h"
-#include "llvm/Method.h"
 #include "llvm/BasicBlock.h"
 #include "llvm/ConstPoolVals.h"
-#include "llvm/SymbolTable.h"
 #include "llvm/DerivedTypes.h"
-#include <string.h>
+#include "llvm/Method.h"
+#include "llvm/Module.h"
+#include "llvm/SymbolTable.h"
 #include <algorithm>
+#include <string.h>
 
-BytecodeWriter::BytecodeWriter(vector<unsigned char> &o, const Module *M) 
-  : Out(o), Table(M, false) {
+BytecodeWriter::BytecodeWriter(std::vector<unsigned char> &o, const Module *M)
+    : Out(o), Table(M, false) {
 
   outputSignature();
 
@@ -50,27 +50,27 @@ BytecodeWriter::BytecodeWriter(vector<unsigned char> &o, const Module *M)
     outputSymbolTable(*M->getSymbolTable());
 }
 
-// TODO: REMOVE
-#include "llvm/Assembly/Writer.h"
-
 bool BytecodeWriter::processConstPool(const ConstantPool &CP, bool isMethod) {
   BytecodeBlock *CPool = new BytecodeBlock(BytecodeFormat::ConstantPool, Out);
 
   unsigned NumPlanes = Table.getNumPlanes();
 
   for (unsigned pno = 0; pno < NumPlanes; pno++) {
-    const vector<const Value*> &Plane = Table.getPlane(pno);
-    if (Plane.empty()) continue;          // Skip empty type planes...
+    const std::vector<const Value *> &Plane = Table.getPlane(pno);
+    if (Plane.empty())
+      continue; // Skip empty type planes...
 
-    unsigned ValNo = 0;   // Don't reemit module constants
-    if (isMethod) ValNo = Table.getModuleLevel(pno);
-    
+    unsigned ValNo = 0; // Don't reemit module constants
+    if (isMethod)
+      ValNo = Table.getModuleLevel(pno);
+
     unsigned NumConstants = 0;
     for (unsigned vn = ValNo; vn < Plane.size(); vn++)
       if (Plane[vn]->getValueType() == Value::ConstantVal)
-	NumConstants++;
+        NumConstants++;
 
-    if (NumConstants == 0) continue;  // Skip empty type planes...
+    if (NumConstants == 0)
+      continue; // Skip empty type planes...
 
     // Output type header: [num entries][type id number]
     //
@@ -78,27 +78,27 @@ bool BytecodeWriter::processConstPool(const ConstantPool &CP, bool isMethod) {
 
     // Output the Type ID Number...
     int Slot = Table.getValSlot(Plane.front()->getType());
-    assert (Slot != -1 && "Type in constant pool but not in method!!");
+    assert(Slot != -1 && "Type in constant pool but not in method!!");
     output_vbr((unsigned)Slot, Out);
 
-    //cerr << "NC: " << NumConstants << " Slot = " << hex << Slot << endl;
+    // cerr << "NC: " << NumConstants << " Slot = " << hex << Slot << endl;
 
     for (; ValNo < Plane.size(); ValNo++) {
       const Value *V = Plane[ValNo];
       if (V->getValueType() == Value::ConstantVal) {
-	//cerr << "Serializing value: <" << V->getType() << ">: " 
-	//     << ((const ConstPoolVal*)V)->getStrValue() << ":" 
-	//     << Out.size() << "\n";
-	outputConstant((const ConstPoolVal*)V);
+        // cerr << "Serializing value: <" << V->getType() << ">: "
+        //      << ((const ConstPoolVal*)V)->getStrValue() << ":"
+        //      << Out.size() << "\n";
+        outputConstant((const ConstPoolVal *)V);
       }
     }
   }
 
-  delete CPool;  // End bytecode block section!
+  delete CPool; // End bytecode block section!
 
   if (!isMethod) { // The ModuleInfoBlock follows directly after the c-pool
     assert(CP.getParent()->getValueType() == Value::ModuleVal);
-    outputModuleInfoBlock((const Module*)CP.getParent());
+    outputModuleInfoBlock((const Module *)CP.getParent());
   }
 
   return false;
@@ -106,7 +106,7 @@ bool BytecodeWriter::processConstPool(const ConstantPool &CP, bool isMethod) {
 
 void BytecodeWriter::outputModuleInfoBlock(const Module *M) {
   BytecodeBlock ModuleInfoBlock(BytecodeFormat::ModuleGlobalInfo, Out);
-  
+
   // Output the types of the methods in this class
   Module::MethodListType::const_iterator I = M->getMethodList().begin();
   while (I != M->getMethodList().end()) {
@@ -125,8 +125,9 @@ bool BytecodeWriter::processMethod(const Method *M) {
 
   Table.incorporateMethod(M);
 
-  if (ModuleAnalyzer::processMethod(M)) return true;
-  
+  if (ModuleAnalyzer::processMethod(M))
+    return true;
+
   // If needed, output the symbol table for the method...
   if (M->hasSymbolTable())
     outputSymbolTable(*M->getSymbolTable());
@@ -134,7 +135,6 @@ bool BytecodeWriter::processMethod(const Method *M) {
   Table.purgeMethod();
   return false;
 }
-
 
 bool BytecodeWriter::processBasicBlock(const BasicBlock *BB) {
   BytecodeBlock MethodBlock(BytecodeFormat::BasicBlock, Out);
@@ -148,8 +148,9 @@ void BytecodeWriter::outputSymbolTable(const SymbolTable &MST) {
     SymbolTable::type_const_iterator I = MST.type_begin(TI->first);
     SymbolTable::type_const_iterator End = MST.type_end(TI->first);
     int Slot;
-    
-    if (I == End) continue;  // Don't mess with an absent type...
+
+    if (I == End)
+      continue; // Don't mess with an absent type...
 
     // Symtab block header: [num entries][type id number]
     output_vbr(MST.type_size(TI->first), Out);
@@ -161,22 +162,22 @@ void BytecodeWriter::outputSymbolTable(const SymbolTable &MST) {
     for (; I != End; I++) {
       // Symtab entry: [def slot #][name]
       Slot = Table.getValSlot(I->second);
-      assert (Slot != -1 && "Value in symtab but not in method!!");
+      assert(Slot != -1 && "Value in symtab but not in method!!");
       output_vbr((unsigned)Slot, Out);
       output(I->first, Out, false); // Don't force alignment...
     }
   }
 }
 
-void WriteBytecodeToFile(const Module *C, ostream &Out) {
+void WriteBytecodeToFile(const Module *C, std::ostream &Out) {
   assert(C && "You can't write a null class!!");
 
-  vector<unsigned char> Buffer;
+  std::vector<unsigned char> Buffer;
 
   // This object populates buffer for us...
   BytecodeWriter BCW(Buffer, C);
 
-  // Okay, write the vector out to the ostream now...
-  Out.write((char*)(&Buffer[0]), Buffer.size());
+  // Okay, write the std::vector out to the ostream now...
+  Out.write((char *)(&Buffer[0]), Buffer.size());
   Out.flush();
 }

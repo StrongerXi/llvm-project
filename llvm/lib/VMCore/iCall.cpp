@@ -4,15 +4,15 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "llvm/iOther.h"
 #include "llvm/DerivedTypes.h"
 #include "llvm/Method.h"
+#include "llvm/iOther.h"
 
-CallInst::CallInst(Method *m, vector<Value*> &params, 
-                   const string &Name) 
-  : Instruction(m->getReturnType(), Instruction::Call, Name), M(m, this) {
+CallInst::CallInst(Method *m, std::vector<Value *> &params,
+                   const std::string &Name)
+    : Instruction(m->getReturnType(), Instruction::Call, Name), M(m, this) {
 
-  const MethodType* MT = M->getMethodType();
+  const MethodType *MT = M->getMethodType();
   const MethodType::ParamTypes &PL = MT->getParamTypes();
   assert(params.size() == PL.size());
 #ifndef NDEBUG
@@ -24,25 +24,26 @@ CallInst::CallInst(Method *m, vector<Value*> &params,
   }
 }
 
-CallInst::CallInst(const CallInst &CI) 
-  : Instruction(CI.getType(), Instruction::Call), M(CI.M, this) {
+CallInst::CallInst(const CallInst &CI)
+    : Instruction(CI.getType(), Instruction::Call), M(CI.M, this) {
   for (unsigned i = 0; i < CI.Params.size(); i++)
     Params.push_back(Use(CI.Params[i], this));
 }
 
-void CallInst::dropAllReferences() { 
+void CallInst::dropAllReferences() {
   M = 0;
-  Params.clear(); 
+  Params.clear();
 }
 
 bool CallInst::setOperand(unsigned i, Value *Val) {
-  if (i > Params.size()) return false;
+  if (i > Params.size())
+    return false;
   if (i == 0) {
     assert(Val->getValueType() == Value::MethodVal);
-    M = (Method*)Val;
+    M = (Method *)Val;
   } else {
     // TODO: assert = method arg type
-    Params[i-1] = Val;
+    Params[i - 1] = Val;
   }
   return true;
 }

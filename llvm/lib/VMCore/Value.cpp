@@ -1,17 +1,17 @@
 //===-- Value.cpp - Implement the Value class -----------------------------===//
 //
-// This file implements the Value class. 
+// This file implements the Value class.
 //
 //===----------------------------------------------------------------------===//
 
-#include "llvm/ValueHolderImpl.h"
-#include "llvm/InstrTypes.h"
-#include "llvm/SymbolTable.h"
-#include "llvm/SymTabValue.h"
-#include "llvm/ConstantPool.h"
 #include "llvm/ConstPoolVals.h"
+#include "llvm/ConstantPool.h"
+#include "llvm/InstrTypes.h"
+#include "llvm/SymTabValue.h"
+#include "llvm/SymbolTable.h"
 #include "llvm/Type.h"
-#ifndef NDEBUG      // Only in -g mode...
+#include "llvm/ValueHolderImpl.h"
+#ifndef NDEBUG // Only in -g mode...
 #include "llvm/Assembly/Writer.h"
 #endif
 #include <algorithm>
@@ -20,16 +20,18 @@
 //                                Value Class
 //===----------------------------------------------------------------------===//
 
-Value::Value(const Type *ty, ValueTy vty, const string &name) : Name(name){
+Value::Value(const Type *ty, ValueTy vty, const std::string &name)
+    : Name(name) {
   Ty = ty;
   VTy = vty;
 }
 
 Value::~Value() {
-#ifndef NDEBUG      // Only in -g mode...
+#ifndef NDEBUG // Only in -g mode...
   if (Uses.begin() != Uses.end()) {
     for (use_const_iterator I = Uses.begin(); I != Uses.end(); I++)
-      cerr << "Use still stuck around after Def is destroyed:" << *I << endl;
+      std::cerr << "Use still stuck around after Def is destroyed:" << *I
+                << std::endl;
   }
 #endif
   assert(Uses.begin() == Uses.end());
@@ -44,16 +46,17 @@ void Value::replaceAllUsesWith(Value *D) {
 #endif
     Use->replaceUsesOfWith(this, D);
 
-#ifndef NDEBUG      // only in -g mode...
+#ifndef NDEBUG // only in -g mode...
     if (Uses.size() == NumUses)
-      cerr << "Use: " << Use << "replace with: " << D; 
+      std::cerr << "Use: " << Use << "replace with: " << D;
 #endif
     assert(Uses.size() != NumUses && "Didn't remove definition!");
   }
 }
 
 void Value::killUse(User *i) {
-  if (i == 0) return;
+  if (i == 0)
+    return;
   use_iterator I = find(Uses.begin(), Uses.end(), i);
 
   assert(I != Uses.end() && "Use not in uses list!!");
@@ -67,23 +70,22 @@ User *Value::use_remove(use_iterator &I) {
   return i;
 }
 
-
 //===----------------------------------------------------------------------===//
 //                                 User Class
 //===----------------------------------------------------------------------===//
 
-User::User(const Type *Ty, ValueTy vty, const string &name) 
-  : Value(Ty, vty, name) {
-}
+User::User(const Type *Ty, ValueTy vty, const std::string &name)
+    : Value(Ty, vty, name) {}
 
 // replaceUsesOfWith - Replaces all references to the "From" definition with
 // references to the "To" definition.
 //
 void User::replaceUsesOfWith(Value *From, Value *To) {
-  if (From == To) return;   // Duh what?
+  if (From == To)
+    return; // Duh what?
 
-  for (unsigned OpNum = 0; Value *D = getOperand(OpNum); OpNum++) {   
-    if (D == From) {  // Okay, this operand is pointing to our fake def.
+  for (unsigned OpNum = 0; Value *D = getOperand(OpNum); OpNum++) {
+    if (D == From) { // Okay, this operand is pointing to our fake def.
       // The side effects of this setOperand call include linking to
       // "To", adding "this" to the uses list of To, and
       // most importantly, removing "this" from the use list of "From".
@@ -91,7 +93,6 @@ void User::replaceUsesOfWith(Value *From, Value *To) {
     }
   }
 }
-
 
 //===----------------------------------------------------------------------===//
 //                             SymTabValue Class
@@ -102,11 +103,10 @@ void User::replaceUsesOfWith(Value *From, Value *To) {
 //
 template class ValueHolder<ConstPoolVal, SymTabValue>;
 
-SymTabValue::SymTabValue(const Type *Ty, ValueTy dty, const string &name)
-  : Value(Ty, dty, name), ConstPool(this) { 
+SymTabValue::SymTabValue(const Type *Ty, ValueTy dty, const std::string &name)
+    : Value(Ty, dty, name), ConstPool(this) {
   ParentSymTab = SymTab = 0;
 }
-
 
 SymTabValue::~SymTabValue() {
   ConstPool.dropAllReferences();
@@ -118,12 +118,13 @@ SymTabValue::~SymTabValue() {
 
 void SymTabValue::setParentSymTab(SymbolTable *ST) {
   ParentSymTab = ST;
-  if (SymTab) 
+  if (SymTab)
     SymTab->setParentSymTab(ST);
 }
 
 SymbolTable *SymTabValue::getSymbolTableSure() {
-  if (!SymTab) SymTab = new SymbolTable(ParentSymTab);
+  if (!SymTab)
+    SymTab = new SymbolTable(ParentSymTab);
   return SymTab;
 }
 
@@ -131,13 +132,14 @@ SymbolTable *SymTabValue::getSymbolTableSure() {
 // this object AND if there is at least one name in it!
 //
 bool SymTabValue::hasSymbolTable() const {
-  if (!SymTab) return false;
+  if (!SymTab)
+    return false;
 
-  for (SymbolTable::const_iterator I = SymTab->begin(); 
-       I != SymTab->end(); I++) {
+  for (SymbolTable::const_iterator I = SymTab->begin(); I != SymTab->end();
+       I++) {
     if (I->second.begin() != I->second.end())
-      return true;                                // Found nonempty type plane!
+      return true; // Found nonempty type plane!
   }
-  
+
   return false;
 }

@@ -18,87 +18,86 @@
 class ToolCommandLine {
 public:
   inline ToolCommandLine(int &argc, char **argv, bool OutputBytecode = true);
-  inline ToolCommandLine(const string &infn, const string &outfn = "-");
+  inline ToolCommandLine(const std::string &infn,
+                         const std::string &outfn = "-");
   inline ToolCommandLine(const ToolCommandLine &O);
   inline ToolCommandLine &operator=(const ToolCommandLine &O);
 
   inline bool getForce() const { return Force; }
-  inline const string getInputFilename() const { return InputFilename; }
-  inline const string getOutputFilename() const { return OutputFilename; }
+  inline const std::string getInputFilename() const { return InputFilename; }
+  inline const std::string getOutputFilename() const { return OutputFilename; }
 
 private:
   void calculateOutputFilename(bool OutputBytecode) {
     OutputFilename = InputFilename;
     unsigned Len = OutputFilename.length();
 
-    if (Len <= 3) { 
-      OutputFilename += (OutputBytecode ? ".bc" : ".ll"); 
-      return; 
+    if (Len <= 3) {
+      OutputFilename += (OutputBytecode ? ".bc" : ".ll");
+      return;
     }
 
     if (OutputBytecode) {
-      if (OutputFilename[Len-3] == '.' &&
-	  OutputFilename[Len-2] == 'l' &&
-	  OutputFilename[Len-1] == 'l') {   // .ll -> .bc	  
-	OutputFilename[Len-2] = 'b'; 
-	OutputFilename[Len-1] = 'c';
+      if (OutputFilename[Len - 3] == '.' && OutputFilename[Len - 2] == 'l' &&
+          OutputFilename[Len - 1] == 'l') { // .ll -> .bc
+        OutputFilename[Len - 2] = 'b';
+        OutputFilename[Len - 1] = 'c';
       } else {
-	OutputFilename += ".bc";
+        OutputFilename += ".bc";
       }
     } else {
-      if (OutputFilename[Len-3] == '.' &&
-	  OutputFilename[Len-2] == 'b' &&
-	  OutputFilename[Len-1] == 'c') {   // .ll -> .bc	  
-	OutputFilename[Len-2] = 'l'; 
-	OutputFilename[Len-1] = 'l';
+      if (OutputFilename[Len - 3] == '.' && OutputFilename[Len - 2] == 'b' &&
+          OutputFilename[Len - 1] == 'c') { // .ll -> .bc
+        OutputFilename[Len - 2] = 'l';
+        OutputFilename[Len - 1] = 'l';
       } else {
-	OutputFilename += ".ll";
+        OutputFilename += ".ll";
       }
     }
   }
 
 private:
-  string InputFilename;           // Filename to read from.  If "-", use stdin.
-  string OutputFilename;          // Filename to write to.   If "-", use stdout.
-  bool   Force;                   // Force output (-f argument)
+  std::string InputFilename;  // Filename to read from.  If "-", use stdin.
+  std::string OutputFilename; // Filename to write to.   If "-", use stdout.
+  bool Force;                 // Force output (-f argument)
 };
 
-inline ToolCommandLine::ToolCommandLine(int &argc, char **argv, bool OutBC) 
-  : InputFilename("-"), OutputFilename("-"), Force(false) {
-  bool FoundInputFN  = false;
+inline ToolCommandLine::ToolCommandLine(int &argc, char **argv, bool OutBC)
+    : InputFilename("-"), OutputFilename("-"), Force(false) {
+  bool FoundInputFN = false;
   bool FoundOutputFN = false;
-  bool FoundForce    = false;
+  bool FoundForce = false;
 
   for (int i = 1; i < argc; i++) {
     int RemoveArg = 0;
-    
+
     if (argv[i][0] == '-') {
       if (!FoundInputFN && argv[i][1] == 0) { // Is the current argument '-'
-	InputFilename = argv[i];
-	FoundInputFN = true;
-	RemoveArg = 1;
+        InputFilename = argv[i];
+        FoundInputFN = true;
+        RemoveArg = 1;
       } else if (!FoundOutputFN && (argv[i][1] == 'o' && argv[i][2] == 0)) {
-	// Is the argument -o?
-	if (i+1 < argc) {        // Next arg is output fn
-	  OutputFilename = argv[i+1];
-	  FoundOutputFN = true;
-	  RemoveArg = 2;
-	}
+        // Is the argument -o?
+        if (i + 1 < argc) { // Next arg is output fn
+          OutputFilename = argv[i + 1];
+          FoundOutputFN = true;
+          RemoveArg = 2;
+        }
       } else if (!FoundForce && (argv[i][1] == 'f' && argv[i][2] == 0)) {
-	Force = true;
-	FoundForce = true;
-	RemoveArg = 1;
+        Force = true;
+        FoundForce = true;
+        RemoveArg = 1;
       }
-    } else if (!FoundInputFN) {     // Is the current argument '[^-].*'?
+    } else if (!FoundInputFN) { // Is the current argument '[^-].*'?
       InputFilename = argv[i];
       FoundInputFN = true;
       RemoveArg = 1;
     }
-					    
+
     if (RemoveArg) {
-      argc -= RemoveArg;                           // Shift args over...
-      memmove(argv+i, argv+i+RemoveArg, (argc-i)*sizeof(char*));
-      i--;                                         // Reprocess this argument...
+      argc -= RemoveArg; // Shift args over...
+      memmove(argv + i, argv + i + RemoveArg, (argc - i) * sizeof(char *));
+      i--; // Reprocess this argument...
     }
   }
 
@@ -106,20 +105,19 @@ inline ToolCommandLine::ToolCommandLine(int &argc, char **argv, bool OutBC)
     calculateOutputFilename(OutBC);
 }
 
-inline ToolCommandLine::ToolCommandLine(const string &inf, 
-                                        const string &outf) 
-  : InputFilename(inf), OutputFilename(outf), Force(false) {
-}
+inline ToolCommandLine::ToolCommandLine(const std::string &inf,
+                                        const std::string &outf)
+    : InputFilename(inf), OutputFilename(outf), Force(false) {}
 
-inline ToolCommandLine::ToolCommandLine(const ToolCommandLine &Opts) 
-  : InputFilename(Opts.InputFilename), OutputFilename(Opts.OutputFilename),
-    Force(Opts.Force) {
-}
+inline ToolCommandLine::ToolCommandLine(const ToolCommandLine &Opts)
+    : InputFilename(Opts.InputFilename), OutputFilename(Opts.OutputFilename),
+      Force(Opts.Force) {}
 
-inline ToolCommandLine &ToolCommandLine::operator=(const ToolCommandLine &Opts){
-  InputFilename  = Opts.InputFilename;
+inline ToolCommandLine &
+ToolCommandLine::operator=(const ToolCommandLine &Opts) {
+  InputFilename = Opts.InputFilename;
   OutputFilename = Opts.OutputFilename;
-  Force          = Opts.Force;
+  Force = Opts.Force;
   return *this;
 }
 

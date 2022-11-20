@@ -92,8 +92,8 @@ false           { return FALSE; }
 declare         { return DECLARE; }
 implementation  { return IMPLEMENTATION; }
 
--               { cerr << "deprecated argument '-' used!\n"; return '-'; }
-bb              { cerr << "deprecated type 'bb' used!\n"; llvmAsmlval.TypeVal = Type::LabelTy; return LABEL;}
+-               { std::cerr << "deprecated argument '-' used!\n"; return '-'; }
+bb              { std::cerr << "deprecated type 'bb' used!\n"; llvmAsmlval.TypeVal = Type::LabelTy; return LABEL;}
 
 void            { llvmAsmlval.TypeVal = Type::VoidTy  ; return VOID;   }
 bool            { llvmAsmlval.TypeVal = Type::BoolTy  ; return BOOL;   }

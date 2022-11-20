@@ -21,14 +21,14 @@ class MethodType;
 class MethodArgument;
 
 class ModuleAnalyzer {
-  ModuleAnalyzer(const ModuleAnalyzer &);                   // do not impl
-  const ModuleAnalyzer &operator=(const ModuleAnalyzer &);  // do not impl
+  ModuleAnalyzer(const ModuleAnalyzer &);                  // do not impl
+  const ModuleAnalyzer &operator=(const ModuleAnalyzer &); // do not impl
 public:
   ModuleAnalyzer() {}
   virtual ~ModuleAnalyzer() {}
-  
+
 protected:
-  // processModule - Driver function to call all of my subclasses virtual 
+  // processModule - Driver function to call all of my subclasses virtual
   // methods.  Commonly called by derived type's constructor.
   //
   bool processModule(const Module *M);
@@ -43,7 +43,7 @@ protected:
   //
   virtual bool processType(const Type *Ty) { return false; }
 
-  // processMethods - The default implementation of this method loops through 
+  // processMethods - The default implementation of this method loops through
   // all of the methods in the module and processModule's them.
   //
   virtual bool processMethods(const Module *M);
@@ -57,19 +57,19 @@ protected:
   // method does the iteration over constants.
   //
   virtual bool processConstPoolPlane(const ConstantPool &CP,
-				     const ConstantPool::PlaneType &Pl, 
-				     bool isMethod) {
+                                     const ConstantPool::PlaneType &Pl,
+                                     bool isMethod) {
     return false;
   }
 
   // processConstant is called once per each constant in the constant pool.  It
   // traverses the constant pool such that it visits each constant in the
-  // order of its type.  Thus, all 'int' typed constants shall be visited 
+  // order of its type.  Thus, all 'int' typed constants shall be visited
   // sequentially, etc...
   //
   virtual bool processConstant(const ConstPoolVal *CPV) { return false; }
 
-  // visitMethod - This member is called after the constant pool has been 
+  // visitMethod - This member is called after the constant pool has been
   // processed.  The default implementation of this is a noop.
   //
   virtual bool visitMethod(const Method *M) { return false; }
@@ -84,7 +84,7 @@ protected:
   //
   virtual bool processMethod(const Method *M);
 
-  // processMethodArgument - This member is called for every argument that 
+  // processMethodArgument - This member is called for every argument that
   // is passed into the method.
   //
   virtual bool processMethodArgument(const MethodArgument *MA) { return false; }
@@ -97,7 +97,7 @@ protected:
   //  Stages of processing BasicBlock level information
   //
 
-  // preProcessInstruction - This member is called for each Instruction in a 
+  // preProcessInstruction - This member is called for each Instruction in a
   // method before processInstruction.
   //
   virtual bool preProcessInstruction(const Instruction *I);
@@ -107,7 +107,7 @@ protected:
   virtual bool processInstruction(const Instruction *I) { return false; }
 
 private:
-  bool handleType(set<const Type *> &TypeSet, const Type *T);
+  bool handleType(std::set<const Type *> &TypeSet, const Type *T);
 };
 
 #endif

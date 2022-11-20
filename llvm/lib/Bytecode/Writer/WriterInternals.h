@@ -12,18 +12,19 @@
 #ifndef LLVM_LIB_BYTECODE_WRITER_WRITERINTERNALS_H
 #define LLVM_LIB_BYTECODE_WRITER_WRITERINTERNALS_H
 
-#include "llvm/Bytecode/Writer.h"
+#include "llvm/Analysis/SlotCalculator.h"
 #include "llvm/Bytecode/Format.h"
 #include "llvm/Bytecode/Primitives.h"
-#include "llvm/Analysis/SlotCalculator.h"
-#include "llvm/Tools/DataTypes.h"
+#include "llvm/Bytecode/Writer.h"
 #include "llvm/Instruction.h"
+#include "llvm/Tools/DataTypes.h"
 
 class BytecodeWriter : public ModuleAnalyzer {
-  vector<unsigned char> &Out;
+  std::vector<unsigned char> &Out;
   SlotCalculator Table;
+
 public:
-  BytecodeWriter(vector<unsigned char> &o, const Module *M);
+  BytecodeWriter(std::vector<unsigned char> &o, const Module *M);
 
 protected:
   virtual bool processConstPool(const ConstantPool &CP, bool isMethod);
@@ -31,10 +32,10 @@ protected:
   virtual bool processBasicBlock(const BasicBlock *BB);
   virtual bool processInstruction(const Instruction *I);
 
-private :
+private:
   inline void outputSignature() {
-    static const unsigned char *Sig =  (const unsigned char*)"llvm";
-    Out.insert(Out.end(), Sig, Sig+4); // output the bytecode signature...
+    static const unsigned char *Sig = (const unsigned char *)"llvm";
+    Out.insert(Out.end(), Sig, Sig + 4); // output the bytecode signature...
   }
 
   void outputModuleInfoBlock(const Module *C);
@@ -43,32 +44,29 @@ private :
   void outputType(const Type *T);
 };
 
-
-
-
 // BytecodeBlock - Little helper class that helps us do backpatching of bytecode
 // block sizes really easily.  It backpatches when it goes out of scope.
 //
 class BytecodeBlock {
   unsigned Loc;
-  vector<unsigned char> &Out;
+  std::vector<unsigned char> &Out;
 
-  BytecodeBlock(const BytecodeBlock &);   // do not implement
-  void operator=(const BytecodeBlock &);  // do not implement
+  BytecodeBlock(const BytecodeBlock &);  // do not implement
+  void operator=(const BytecodeBlock &); // do not implement
 public:
-  inline BytecodeBlock(unsigned ID, vector<unsigned char> &o) : Out(o) {
+  inline BytecodeBlock(unsigned ID, std::vector<unsigned char> &o) : Out(o) {
     output(ID, Out);
-    output((unsigned)0, Out);         // Reserve the space for the block size...
+    output((unsigned)0, Out); // Reserve the space for the block size...
     Loc = Out.size();
   }
 
-  inline ~BytecodeBlock() {           // Do backpatch when block goes out
-                                      // of scope...
-    //    cerr << "OldLoc = " << Loc << " NewLoc = " << NewLoc << " diff = " << (NewLoc-Loc) << endl;
-    output((unsigned)(Out.size()-Loc), Out, (int)Loc-4);
-    align32(Out);  // Blocks must ALWAYS be aligned
+  inline ~BytecodeBlock() { // Do backpatch when block goes out
+                            // of scope...
+    //    cerr << "OldLoc = " << Loc << " NewLoc = " << NewLoc << " diff = " <<
+    //    (NewLoc-Loc) << endl;
+    output((unsigned)(Out.size() - Loc), Out, (int)Loc - 4);
+    align32(Out); // Blocks must ALWAYS be aligned
   }
 };
-
 
 #endif

@@ -10,27 +10,28 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "llvm/Assembly/Writer.h"
 #include "llvm/Analysis/SlotCalculator.h"
-#include "llvm/Module.h"
-#include "llvm/Method.h"
+#include "llvm/Assembly/Writer.h"
 #include "llvm/BasicBlock.h"
 #include "llvm/ConstPoolVals.h"
-#include "llvm/iOther.h"
+#include "llvm/Method.h"
+#include "llvm/Module.h"
 #include "llvm/iMemory.h"
+#include "llvm/iOther.h"
 
 class AssemblyWriter : public ModuleAnalyzer {
-  ostream &Out;
+  std::ostream &Out;
   SlotCalculator &Table;
-public:
-  inline AssemblyWriter(ostream &o, SlotCalculator &Tab) : Out(o), Table(Tab) {
-  }
 
-  inline void write(const Module *M)         { processModule(M);      }
-  inline void write(const Method *M)         { processMethod(M);      }
-  inline void write(const BasicBlock *BB)    { processBasicBlock(BB); }
-  inline void write(const Instruction *I)    { processInstruction(I); }
-  inline void write(const ConstPoolVal *CPV) { processConstant(CPV);  }
+public:
+  inline AssemblyWriter(std::ostream &o, SlotCalculator &Tab)
+      : Out(o), Table(Tab) {}
+
+  inline void write(const Module *M) { processModule(M); }
+  inline void write(const Method *M) { processMethod(M); }
+  inline void write(const BasicBlock *BB) { processBasicBlock(BB); }
+  inline void write(const Instruction *I) { processInstruction(I); }
+  inline void write(const ConstPoolVal *CPV) { processConstant(CPV); }
 
 protected:
   virtual bool visitMethod(const Method *M);
@@ -41,32 +42,28 @@ protected:
   virtual bool processBasicBlock(const BasicBlock *BB);
   virtual bool processInstruction(const Instruction *I);
 
-private :
+private:
   void writeOperand(const Value *Op, bool PrintType, bool PrintName = true);
 };
-
-
 
 // visitMethod - This member is called after the above two steps, visting each
 // method, because they are effectively values that go into the constant pool.
 //
-bool AssemblyWriter::visitMethod(const Method *M) {
-  return false;
-}
+bool AssemblyWriter::visitMethod(const Method *) { return false; }
 
 bool AssemblyWriter::processConstPool(const ConstantPool &CP, bool isMethod) {
   // Done printing arguments...
-  if (isMethod) Out << ")\n";
+  if (isMethod)
+    Out << ")\n";
 
   ModuleAnalyzer::processConstPool(CP, isMethod);
-  
+
   if (isMethod)
     Out << "begin";
   else
     Out << "implementation\n";
   return false;
 }
-
 
 // processConstant - Print out a constant pool entry...
 //
@@ -86,11 +83,13 @@ bool AssemblyWriter::processConstant(const ConstPoolVal *CPV) {
   if (!CPV->hasName() && CPV->getType() != Type::VoidTy) {
     int Slot = Table.getValSlot(CPV); // Print out the def slot taken...
     Out << "\t\t; <" << CPV->getType() << ">:";
-    if (Slot >= 0) Out << Slot;
-    else Out << "<badref>";
-  } 
+    if (Slot >= 0)
+      Out << Slot;
+    else
+      Out << "<badref>";
+  }
 
-  Out << endl;
+  Out << std::endl;
   return false;
 }
 
@@ -106,37 +105,38 @@ bool AssemblyWriter::processMethod(const Method *M) {
   return false;
 }
 
-// processMethodArgument - This member is called for every argument that 
+// processMethodArgument - This member is called for every argument that
 // is passed into the method.  Simply print it out
 //
 bool AssemblyWriter::processMethodArgument(const MethodArgument *Arg) {
   // Insert commas as we go... the first arg doesn't get a comma
-  if (Arg != Arg->getParent()->getArgumentList().front()) Out << ", ";
+  if (Arg != Arg->getParent()->getArgumentList().front())
+    Out << ", ";
 
   // Output type...
   Out << Arg->getType();
-  
+
   // Output name, if available...
   if (Arg->hasName())
     Out << " %" << Arg->getName();
   else if (Table.getValSlot(Arg) < 0)
     Out << "<badref>";
-  
+
   return false;
 }
 
 // processBasicBlock - This member is called for each basic block in a methd.
 //
 bool AssemblyWriter::processBasicBlock(const BasicBlock *BB) {
-  if (BB->hasName()) {              // Print out the label if it exists...
+  if (BB->hasName()) { // Print out the label if it exists...
     Out << "\n" << BB->getName() << ":\n";
   } else {
     int Slot = Table.getValSlot(BB);
     Out << "\t\t\t\t; <label>:";
-    if (Slot >= 0) 
-      Out << Slot << endl;         // Extra newline seperates out label's
-    else 
-      Out << "<badref>\n"; 
+    if (Slot >= 0)
+      Out << Slot << std::endl; // Extra newline seperates out label's
+    else
+      Out << "<badref>\n";
   }
 
   ModuleAnalyzer::processBasicBlock(BB);
@@ -168,13 +168,16 @@ bool AssemblyWriter::processInstruction(const Instruction *I) {
 
   } else if (I->getInstType() == Instruction::Switch) {
     // Special case switch statement to get formatting nice and correct...
-    writeOperand(Operand         , true); Out << ",";
-    writeOperand(I->getOperand(1), true); Out << " [";
+    writeOperand(Operand, true);
+    Out << ",";
+    writeOperand(I->getOperand(1), true);
+    Out << " [";
 
     for (unsigned op = 2; (Operand = I->getOperand(op)); op += 2) {
       Out << "\n\t\t";
-      writeOperand(Operand, true); Out << ",";
-      writeOperand(I->getOperand(op+1), true);
+      writeOperand(Operand, true);
+      Out << ",";
+      writeOperand(I->getOperand(op + 1), true);
     }
     Out << "\n\t]";
 
@@ -184,24 +187,27 @@ bool AssemblyWriter::processInstruction(const Instruction *I) {
     writeOperand(Operand, true);
     Out << "(";
     Operand = I->getOperand(1);
-    if (Operand) writeOperand(Operand, true);
+    if (Operand)
+      writeOperand(Operand, true);
     for (unsigned op = 2; (Operand = I->getOperand(op)); ++op) {
       Out << ",";
       writeOperand(Operand, true);
     }
 
     Out << " )";
-  } else if (I->getInstType() == Instruction::Malloc || 
-	     I->getInstType() == Instruction::Alloca) {
-    Out << " " << ((const PointerType*)((ConstPoolType*)Operand)
-		   ->getValue())->getValueType();
+  } else if (I->getInstType() == Instruction::Malloc ||
+             I->getInstType() == Instruction::Alloca) {
+    Out << " "
+        << ((const PointerType *)((ConstPoolType *)Operand)->getValue())
+               ->getValueType();
     if ((Operand = I->getOperand(1))) {
-      Out << ","; writeOperand(Operand, true);
+      Out << ",";
+      writeOperand(Operand, true);
     }
 
-  } else if (Operand) {   // Print the normal way...
+  } else if (Operand) { // Print the normal way...
 
-    // PrintAllTypes - Instructions who have operands of all the same type 
+    // PrintAllTypes - Instructions who have operands of all the same type
     // omit the type from all but the first operand.  If the instruction has
     // different type operands (for example br), then they are all printed.
     bool PrintAllTypes = false;
@@ -210,8 +216,8 @@ bool AssemblyWriter::processInstruction(const Instruction *I) {
 
     for (i = 1; (Operand = I->getOperand(i)); i++) {
       if (Operand->getType() != TheType) {
-	PrintAllTypes = true;       // We have differing types!  Print them all!
-	break;
+        PrintAllTypes = true; // We have differing types!  Print them all!
+        break;
       }
     }
 
@@ -219,7 +225,8 @@ bool AssemblyWriter::processInstruction(const Instruction *I) {
       Out << " " << I->getOperand(0)->getType();
 
     for (unsigned i = 0; (Operand = I->getOperand(i)); i++) {
-      if (i) Out << ",";
+      if (i)
+        Out << ",";
       writeOperand(Operand, PrintAllTypes);
     }
   }
@@ -230,64 +237,71 @@ bool AssemblyWriter::processInstruction(const Instruction *I) {
   if (!I->hasName() && I->getType() != Type::VoidTy) {
     int Slot = Table.getValSlot(I); // Print out the def slot taken...
     Out << "\t\t; <" << I->getType() << ">:";
-    if (Slot >= 0) Out << Slot;
-    else Out << "<badref>";
+    if (Slot >= 0)
+      Out << Slot;
+    else
+      Out << "<badref>";
 
-    Out << "\t[#uses=" << I->use_size() << "]";  // Output # uses
+    Out << "\t[#uses=" << I->use_size() << "]"; // Output # uses
   }
 
-  Out << endl;
+  Out << std::endl;
 
   return false;
 }
 
-
-void AssemblyWriter::writeOperand(const Value *Operand, bool PrintType, 
-				  bool PrintName) {
+void AssemblyWriter::writeOperand(const Value *Operand, bool PrintType,
+                                  bool PrintName) {
   if (PrintType)
     Out << " " << Operand->getType();
-  
+
   if (Operand->hasName() && PrintName) {
     Out << " %" << Operand->getName();
   } else {
     int Slot = Table.getValSlot(Operand);
-    
+
     if (Operand->getValueType() == Value::ConstantVal) {
-      Out << " " << ((ConstPoolVal*)Operand)->getStrValue();
+      Out << " " << ((ConstPoolVal *)Operand)->getStrValue();
     } else {
-      if (Slot >= 0)  Out << " %" << Slot;
+      if (Slot >= 0)
+        Out << " %" << Slot;
       else if (PrintName)
-        Out << "<badref>";     // Not embeded into a location?
+        Out << "<badref>"; // Not embeded into a location?
     }
   }
 }
-
 
 //===----------------------------------------------------------------------===//
 //                       External Interface declarations
 //===----------------------------------------------------------------------===//
 
-
-
-void WriteToAssembly(const Module *M, ostream &o) {
-  if (M == 0) { o << "<null> module\n"; return; }
+void WriteToAssembly(const Module *M, std::ostream &o) {
+  if (M == 0) {
+    o << "<null> module\n";
+    return;
+  }
   SlotCalculator SlotTable(M, true);
   AssemblyWriter W(o, SlotTable);
 
   W.write(M);
 }
 
-void WriteToAssembly(const Method *M, ostream &o) {
-  if (M == 0) { o << "<null> method\n"; return; }
+void WriteToAssembly(const Method *M, std::ostream &o) {
+  if (M == 0) {
+    o << "<null> method\n";
+    return;
+  }
   SlotCalculator SlotTable(M->getParent(), true);
   AssemblyWriter W(o, SlotTable);
 
   W.write(M);
 }
 
-
-void WriteToAssembly(const BasicBlock *BB, ostream &o) {
-  if (BB == 0) { o << "<null> basic block\n"; return; }
+void WriteToAssembly(const BasicBlock *BB, std::ostream &o) {
+  if (BB == 0) {
+    o << "<null> basic block\n";
+    return;
+  }
 
   SlotCalculator SlotTable(BB->getParent(), true);
   AssemblyWriter W(o, SlotTable);
@@ -295,20 +309,23 @@ void WriteToAssembly(const BasicBlock *BB, ostream &o) {
   W.write(BB);
 }
 
-void WriteToAssembly(const ConstPoolVal *CPV, ostream &o) {
-  if (CPV == 0) { o << "<null> constant pool value\n"; return; }
+void WriteToAssembly(const ConstPoolVal *CPV, std::ostream &o) {
+  if (CPV == 0) {
+    o << "<null> constant pool value\n";
+    return;
+  }
 
   SlotCalculator *SlotTable;
 
-  // A Constant pool value may have a parent that is either a method or a 
+  // A Constant pool value may have a parent that is either a method or a
   // module.  Untangle this now...
   //
-  if (CPV->getParent() == 0 || 
+  if (CPV->getParent() == 0 ||
       CPV->getParent()->getValueType() == Value::MethodVal) {
-    SlotTable = new SlotCalculator((Method*)CPV->getParent(), true);
+    SlotTable = new SlotCalculator((Method *)CPV->getParent(), true);
   } else {
     assert(CPV->getParent()->getValueType() == Value::ModuleVal);
-    SlotTable = new SlotCalculator((Module*)CPV->getParent(), true);
+    SlotTable = new SlotCalculator((Module *)CPV->getParent(), true);
   }
 
   AssemblyWriter W(o, *SlotTable);
@@ -317,11 +334,14 @@ void WriteToAssembly(const ConstPoolVal *CPV, ostream &o) {
   delete SlotTable;
 }
 
-void WriteToAssembly(const Instruction *I, ostream &o) {
-  if (I == 0) { o << "<null> instruction\n"; return; }
+void WriteToAssembly(const Instruction *I, std::ostream &o) {
+  if (I == 0) {
+    o << "<null> instruction\n";
+    return;
+  }
 
-  SlotCalculator SlotTable(I->getParent() ? I->getParent()->getParent() : 0, 
-			   true);
+  SlotCalculator SlotTable(I->getParent() ? I->getParent()->getParent() : 0,
+                           true);
   AssemblyWriter W(o, SlotTable);
 
   W.write(I);

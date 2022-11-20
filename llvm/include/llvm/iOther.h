@@ -1,6 +1,6 @@
 //===-- llvm/iOther.h - "Other" instruction node definitions -----*- C++ -*--=//
 //
-// This file contains the declarations for instructions that fall into the 
+// This file contains the declarations for instructions that fall into the
 // grandios 'other' catagory...
 //
 //===----------------------------------------------------------------------===//
@@ -29,10 +29,11 @@
 // TOFIX: Store pair<Use,BasicBlockUse> instead of just <Use>
 //
 class PHINode : public Instruction {
-  vector<Use> IncomingValues;
+  std::vector<Use> IncomingValues;
   PHINode(const PHINode &PN);
+
 public:
-  PHINode(const Type *Ty, const string &Name = "");
+  PHINode(const Type *Ty, const std::string &Name = "");
   inline ~PHINode() { dropAllReferences(); }
 
   virtual Instruction *clone() const { return new PHINode(*this); }
@@ -40,43 +41,41 @@ public:
   // Implement all of the functionality required by User...
   //
   virtual void dropAllReferences();
-  virtual const Value *getOperand(unsigned i) const { 
-    return (i < IncomingValues.size()) ? IncomingValues[i] : 0; 
+  virtual const Value *getOperand(unsigned i) const {
+    return (i < IncomingValues.size()) ? IncomingValues[i] : 0;
   }
   inline Value *getOperand(unsigned i) {
-    return (Value*)((const PHINode*)this)->getOperand(i);
+    return (Value *)((const PHINode *)this)->getOperand(i);
   }
   virtual unsigned getNumOperands() const { return IncomingValues.size(); }
   virtual bool setOperand(unsigned i, Value *Val);
-  virtual string getOpcode() const { return "phi"; }
+  virtual std::string getOpcode() const { return "phi"; }
 
   void addIncoming(Value *D);
 };
-
 
 //===----------------------------------------------------------------------===//
 //                           MethodArgument Class
 //===----------------------------------------------------------------------===//
 
-class MethodArgument : public Value {  // Defined in the InstrType.cpp file
+class MethodArgument : public Value { // Defined in the InstrType.cpp file
   Method *Parent;
 
-  friend class ValueHolder<MethodArgument,Method>;
+  friend class ValueHolder<MethodArgument, Method>;
   inline void setParent(Method *parent) { Parent = parent; }
 
 public:
-  MethodArgument(const Type *Ty, const string &Name = "") 
-    : Value(Ty, Value::MethodArgumentVal, Name) {
+  MethodArgument(const Type *Ty, const std::string &Name = "")
+      : Value(Ty, Value::MethodArgumentVal, Name) {
     Parent = 0;
   }
 
   // Specialize setName to handle symbol table majik...
-  virtual void setName(const string &name);
+  virtual void setName(const std::string &name);
 
   inline const Method *getParent() const { return Parent; }
-  inline       Method *getParent()       { return Parent; }
+  inline Method *getParent() { return Parent; }
 };
-
 
 //===----------------------------------------------------------------------===//
 //             Classes to function calls and method invocations
@@ -84,31 +83,32 @@ public:
 
 class CallInst : public Instruction {
   MethodUse M;
-  vector<Use> Params;
+  std::vector<Use> Params;
   CallInst(const CallInst &CI);
+
 public:
-  CallInst(Method *M, vector<Value*> &params, const string &Name = "");
+  CallInst(Method *M, std::vector<Value *> &params,
+           const std::string &Name = "");
   inline ~CallInst() { dropAllReferences(); }
 
-  virtual string getOpcode() const { return "call"; }
+  virtual std::string getOpcode() const { return "call"; }
 
   virtual Instruction *clone() const { return new CallInst(*this); }
   bool hasSideEffects() const { return true; }
 
-
   const Method *getCalledMethod() const { return M; }
-        Method *getCalledMethod()       { return M; }
+  Method *getCalledMethod() { return M; }
 
   // Implement all of the functionality required by Instruction...
   //
   virtual void dropAllReferences();
-  virtual const Value *getOperand(unsigned i) const { 
-    return i == 0 ? M : ((i <= Params.size()) ? Params[i-1] : 0);
+  virtual const Value *getOperand(unsigned i) const {
+    return i == 0 ? M : ((i <= Params.size()) ? Params[i - 1] : 0);
   }
   inline Value *getOperand(unsigned i) {
-    return (Value*)((const CallInst*)this)->getOperand(i);
+    return (Value *)((const CallInst *)this)->getOperand(i);
   }
-  virtual unsigned getNumOperands() const { return Params.size()+1; }
+  virtual unsigned getNumOperands() const { return Params.size() + 1; }
 
   virtual bool setOperand(unsigned i, Value *Val);
 };

@@ -13,13 +13,12 @@
 #define LLVM_BYTECODE_READER_H
 
 #include <string>
-using namespace std;
 
 class Module;
 
 // Parse and return a class...
 //
-Module *ParseBytecodeFile(const string &Filename);
+Module *ParseBytecodeFile(const std::string &Filename);
 Module *ParseBytecodeBuffer(const char *Buffer, unsigned BufferSize);
 
 #endif

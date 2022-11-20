@@ -12,7 +12,6 @@
 class Module;
 class ToolCommandLine;
 
-
 //===------------------------------------------------------------------------===
 //                              Helper Classes
 //===------------------------------------------------------------------------===
@@ -22,37 +21,38 @@ class ToolCommandLine;
 //
 class ParseException {
 public:
-  ParseException(const ToolCommandLine &Opts, const string &message, 
-		 int LineNo = -1, int ColNo = -1);
+  ParseException(const ToolCommandLine &Opts, const std::string &message,
+                 int LineNo = -1, int ColNo = -1);
 
   ParseException(const ParseException &E);
 
-  // getMessage - Return the message passed in at construction time plus extra 
+  // getMessage - Return the message passed in at construction time plus extra
   // information extracted from the options used to parse with...
   //
-  const string getMessage() const;
+  const std::string getMessage() const;
 
-  inline const string getRawMessage() const {    // Just the raw message...
+  inline const std::string getRawMessage() const { // Just the raw message...
     return Message;
   }
 
   inline const ToolCommandLine &getOptions() const {
-    return Opts;                           // Get the options obj used to parse.
+    return Opts; // Get the options obj used to parse.
   }
 
   // getErrorLocation - Return the line and column number of the error in the
-  // input source file.  The source filename can be derived from the 
-  // ParserOptions in effect.  If positional information is not applicable, 
+  // input source file.  The source filename can be derived from the
+  // ParserOptions in effect.  If positional information is not applicable,
   // these will return a value of -1.
   //
-  inline const void getErrorLocation(int &Line, int &Column) const {
-    Line = LineNo; Column = ColumnNo;
+  inline void getErrorLocation(int &Line, int &Column) const {
+    Line = LineNo;
+    Column = ColumnNo;
   }
 
-private :
+private:
   const ToolCommandLine &Opts;
-  string Message;
-  int LineNo, ColumnNo;                               // -1 if not relevant
+  std::string Message;
+  int LineNo, ColumnNo; // -1 if not relevant
 
   ParseException &operator=(const ParseException &E); // objects by reference
 };
@@ -60,6 +60,6 @@ private :
 // The useful interface defined by this file... Parse an ascii file, and return
 // the internal representation in a nice slice'n'dice'able representation.
 //
-Module *ParseAssemblyFile(const ToolCommandLine &Opts) throw (ParseException);
+Module *ParseAssemblyFile(const ToolCommandLine &Opts) throw(ParseException);
 
 #endif
