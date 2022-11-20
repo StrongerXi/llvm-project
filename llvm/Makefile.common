@@ -52,7 +52,7 @@ LibPathsG = $(LibPathsO:Release=Debug)
 #Prof = -pg
 
 # TODO: Get rid of exceptions! : -fno-exceptions -fno-rtti
-CompileCommonOpts = $(Prof) -Wall -Winline -W -std=c++03 -Wwrite-strings -Wno-unused -I$(LEVEL)/include
+CompileCommonOpts = $(Prof) -Wall -Winline -W -std=c++03 -Wwrite-strings -Wno-unused -Wno-unused-parameter -I$(LEVEL)/include
 
 # Compile a file, don't link...
 Compile  = $(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $(CompileCommonOpts)
