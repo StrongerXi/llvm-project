@@ -18,6 +18,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "llvm/BasicBlock.h"
+#include "llvm/ConstantPool.h"
 #include "llvm/Method.h"
 #include "llvm/Module.h"
 #include "llvm/Opt/AllOpts.h"

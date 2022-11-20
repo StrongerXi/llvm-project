@@ -9,14 +9,7 @@
 #include "llvm/DerivedTypes.h"
 #include "llvm/Module.h"
 #include "llvm/SymbolTable.h"
-#include "llvm/ValueHolderImpl.h"
 #include "llvm/iOther.h"
-
-// Instantiate Templates - This ugliness is the price we have to pay
-// for having a ValueHolderImpl.h file seperate from ValueHolder.h!  :(
-//
-template class ValueHolder<MethodArgument, Method>;
-template class ValueHolder<BasicBlock, Method>;
 
 Method::Method(const MethodType *Ty, const std::string &name)
     : SymTabValue(Ty, Value::MethodVal, name), BasicBlocks(this),

@@ -13,7 +13,6 @@
 
 class User;
 class Type;
-template <class ValueSubclass, class ItemParentType> class ValueHolder;
 
 //===----------------------------------------------------------------------===//
 //                                 Value Class

@@ -27,7 +27,7 @@ class Type;
 // That should be much more efficient!
 //
 class SymbolTable
-    : public std::map<const Type *, std::map<const std::string, Value *>> {
+    : public std::map<const Type *, std::map<const std::string, Value *> > {
   typedef std::map<const std::string, Value *> VarMap;
   typedef std::map<const Type *, VarMap> super;
 

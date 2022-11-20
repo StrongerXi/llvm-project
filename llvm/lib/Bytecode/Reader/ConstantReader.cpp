@@ -11,6 +11,7 @@
 #include "ReaderInternals.h"
 #include "llvm/BasicBlock.h"
 #include "llvm/ConstPoolVals.h"
+#include "llvm/ConstantPool.h"
 #include "llvm/DerivedTypes.h"
 #include "llvm/Module.h"
 

@@ -8,7 +8,6 @@
 #include "llvm/BasicBlock.h"
 #include "llvm/InstrTypes.h"
 #include "llvm/Method.h"
-#include "llvm/ValueHolderImpl.h"
 
 // Instantiate Templates - This ugliness is the price we have to pay
 // for having a DefHolderImpl.h file seperate from DefHolder.h!  :(

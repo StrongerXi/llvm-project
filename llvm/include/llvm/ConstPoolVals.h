@@ -11,6 +11,7 @@
 #include "llvm/SymTabValue.h"
 #include "llvm/Tools/DataTypes.h"
 #include "llvm/User.h"
+#include "llvm/ValueHolder.h"
 #include <vector>
 
 class ArrayType;

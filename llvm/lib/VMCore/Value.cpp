@@ -10,7 +10,6 @@
 #include "llvm/SymTabValue.h"
 #include "llvm/SymbolTable.h"
 #include "llvm/Type.h"
-#include "llvm/ValueHolderImpl.h"
 #ifndef NDEBUG // Only in -g mode...
 #include "llvm/Assembly/Writer.h"
 #endif
@@ -98,22 +97,18 @@ void User::replaceUsesOfWith(Value *From, Value *To) {
 //                             SymTabValue Class
 //===----------------------------------------------------------------------===//
 
-// Instantiate Templates - This ugliness is the price we have to pay
-// for having a ValueHolderImpl.h file seperate from ValueHolder.h!  :(
-//
-template class ValueHolder<ConstPoolVal, SymTabValue>;
-
 SymTabValue::SymTabValue(const Type *Ty, ValueTy dty, const std::string &name)
-    : Value(Ty, dty, name), ConstPool(this) {
+    : Value(Ty, dty, name), ConstPool(new ConstantPool(this)) {
   ParentSymTab = SymTab = 0;
 }
 
 SymTabValue::~SymTabValue() {
-  ConstPool.dropAllReferences();
-  ConstPool.delete_all();
-  ConstPool.setParent(0);
+  ConstPool->dropAllReferences();
+  ConstPool->delete_all();
+  ConstPool->setParent(0);
 
   delete SymTab;
+  delete ConstPool;
 }
 
 void SymTabValue::setParentSymTab(SymbolTable *ST) {

@@ -9,6 +9,7 @@
 #define LLVM_MODULE_H
 
 #include "llvm/SymTabValue.h"
+#include "llvm/ValueHolder.h"
 class Method;
 
 class Module : public SymTabValue {

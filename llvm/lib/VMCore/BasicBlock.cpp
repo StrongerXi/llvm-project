@@ -9,13 +9,7 @@
 #include "llvm/Module.h"
 #include "llvm/SymbolTable.h"
 #include "llvm/Type.h"
-#include "llvm/ValueHolderImpl.h"
 #include "llvm/iTerminators.h"
-
-// Instantiate Templates - This ugliness is the price we have to pay
-// for having a ValueHolderImpl.h file seperate from ValueHolder.h!  :(
-//
-template class ValueHolder<Instruction, BasicBlock>;
 
 BasicBlock::BasicBlock(const std::string &name, Method *parent)
     : Value(Type::LabelTy, Value::BasicBlockVal, name), InstList(this, 0) {

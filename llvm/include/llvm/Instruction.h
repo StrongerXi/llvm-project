@@ -9,6 +9,7 @@
 #define LLVM_INSTRUCTION_H
 
 #include "llvm/User.h"
+#include "llvm/ValueHolder.h"
 
 class Type;
 class BasicBlock;

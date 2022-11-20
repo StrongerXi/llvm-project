@@ -115,7 +115,7 @@ static // BoolTyInst is static...
 template <class ConstPoolClass, class BuiltinType, const Type **Ty>
 struct DirectRules
     : public TemplateRules<ConstPoolClass,
-                           DirectRules<ConstPoolClass, BuiltinType, Ty>> {
+                           DirectRules<ConstPoolClass, BuiltinType, Ty> > {
 
   inline static ConstPoolVal *Neg(const ConstPoolClass *V) {
     return new ConstPoolClass(*Ty, -(BuiltinType)V->getValue());

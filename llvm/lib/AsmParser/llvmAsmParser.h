@@ -35,66 +35,66 @@
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
-#define YYTOKENTYPE
-/* Put the tokens into the symbol table, so that GDB and other debuggers
-   know about them.  */
-enum yytokentype {
-  ESINT64VAL = 258,
-  EUINT64VAL = 259,
-  SINTVAL = 260,
-  UINTVAL = 261,
-  VOID = 262,
-  BOOL = 263,
-  SBYTE = 264,
-  UBYTE = 265,
-  SHORT = 266,
-  USHORT = 267,
-  INT = 268,
-  UINT = 269,
-  LONG = 270,
-  ULONG = 271,
-  FLOAT = 272,
-  DOUBLE = 273,
-  STRING = 274,
-  TYPE = 275,
-  LABEL = 276,
-  VAR_ID = 277,
-  LABELSTR = 278,
-  STRINGCONSTANT = 279,
-  IMPLEMENTATION = 280,
-  TRUE = 281,
-  FALSE = 282,
-  BEGINTOK = 283,
-  END = 284,
-  DECLARE = 285,
-  PHI = 286,
-  CALL = 287,
-  RET = 288,
-  BR = 289,
-  SWITCH = 290,
-  NEG = 291,
-  NOT = 292,
-  TOINT = 293,
-  TOUINT = 294,
-  ADD = 295,
-  SUB = 296,
-  MUL = 297,
-  DIV = 298,
-  REM = 299,
-  SETLE = 300,
-  SETGE = 301,
-  SETLT = 302,
-  SETGT = 303,
-  SETEQ = 304,
-  SETNE = 305,
-  MALLOC = 306,
-  ALLOCA = 307,
-  FREE = 308,
-  LOAD = 309,
-  STORE = 310,
-  GETFIELD = 311,
-  PUTFIELD = 312
-};
+# define YYTOKENTYPE
+   /* Put the tokens into the symbol table, so that GDB and other debuggers
+      know about them.  */
+   enum yytokentype {
+     ESINT64VAL = 258,
+     EUINT64VAL = 259,
+     SINTVAL = 260,
+     UINTVAL = 261,
+     VOID = 262,
+     BOOL = 263,
+     SBYTE = 264,
+     UBYTE = 265,
+     SHORT = 266,
+     USHORT = 267,
+     INT = 268,
+     UINT = 269,
+     LONG = 270,
+     ULONG = 271,
+     FLOAT = 272,
+     DOUBLE = 273,
+     STRING = 274,
+     TYPE = 275,
+     LABEL = 276,
+     VAR_ID = 277,
+     LABELSTR = 278,
+     STRINGCONSTANT = 279,
+     IMPLEMENTATION = 280,
+     TRUE = 281,
+     FALSE = 282,
+     BEGINTOK = 283,
+     END = 284,
+     DECLARE = 285,
+     PHI = 286,
+     CALL = 287,
+     RET = 288,
+     BR = 289,
+     SWITCH = 290,
+     NEG = 291,
+     NOT = 292,
+     TOINT = 293,
+     TOUINT = 294,
+     ADD = 295,
+     SUB = 296,
+     MUL = 297,
+     DIV = 298,
+     REM = 299,
+     SETLE = 300,
+     SETGE = 301,
+     SETLT = 302,
+     SETGT = 303,
+     SETEQ = 304,
+     SETNE = 305,
+     MALLOC = 306,
+     ALLOCA = 307,
+     FREE = 308,
+     LOAD = 309,
+     STORE = 310,
+     GETFIELD = 311,
+     PUTFIELD = 312
+   };
 #endif
 /* Tokens.  */
 #define ESINT64VAL 258
@@ -153,44 +153,48 @@ enum yytokentype {
 #define GETFIELD 311
 #define PUTFIELD 312
 
-#if !defined YYSTYPE && !defined YYSTYPE_IS_DECLARED
+
+
+
+#if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
 #line 338 "llvmAsmParser.y"
 {
-  Module *ModuleVal;
-  Method *MethodVal;
-  MethodArgument *MethArgVal;
-  BasicBlock *BasicBlockVal;
-  TerminatorInst *TermInstVal;
-  Instruction *InstVal;
-  ConstPoolVal *ConstVal;
-  const Type *TypeVal;
+  Module                  *ModuleVal;
+  Method                  *MethodVal;
+  MethodArgument          *MethArgVal;
+  BasicBlock              *BasicBlockVal;
+  TerminatorInst          *TermInstVal;
+  Instruction             *InstVal;
+  ConstPoolVal            *ConstVal;
+  const Type              *TypeVal;
 
-  std::list<MethodArgument *> *MethodArgList;
-  std::list<Value *> *ValueList;
-  std::list<const Type *> *TypeList;
-  std::list<std::pair<ConstPoolVal *, BasicBlock *>> *JumpTable;
-  std::vector<ConstPoolVal *> *ConstVector;
+  std::list<MethodArgument*>   *MethodArgList;
+  std::list<Value*>            *ValueList;
+  std::list<const Type*>       *TypeList;
+  std::list<std::pair<ConstPoolVal*, BasicBlock*> > *JumpTable;
+  std::vector<ConstPoolVal*>   *ConstVector;
 
-  int64_t SInt64Val;
-  uint64_t UInt64Val;
-  int SIntVal;
-  unsigned UIntVal;
+  int64_t                  SInt64Val;
+  uint64_t                 UInt64Val;
+  int                      SIntVal;
+  unsigned                 UIntVal;
 
-  char *StrVal;   // This memory is allocated by strdup!
-  ValID ValIDVal; // May contain memory allocated by strdup
+  char                    *StrVal;   // This memory is allocated by strdup!
+  ValID                    ValIDVal; // May contain memory allocated by strdup
 
-  Instruction::UnaryOps UnaryOpVal;
-  Instruction::BinaryOps BinaryOpVal;
-  Instruction::TermOps TermOpVal;
-  Instruction::MemoryOps MemOpVal;
+  Instruction::UnaryOps    UnaryOpVal;
+  Instruction::BinaryOps   BinaryOpVal;
+  Instruction::TermOps     TermOpVal;
+  Instruction::MemoryOps   MemOpVal;
 }
 /* Line 1529 of yacc.c.  */
 #line 193 "llvmAsmParser.tab.h"
-YYSTYPE;
-#define yystype YYSTYPE /* obsolescent; will be withdrawn */
-#define YYSTYPE_IS_DECLARED 1
-#define YYSTYPE_IS_TRIVIAL 1
+	YYSTYPE;
+# define yystype YYSTYPE /* obsolescent; will be withdrawn */
+# define YYSTYPE_IS_DECLARED 1
+# define YYSTYPE_IS_TRIVIAL 1
 #endif
 
 extern YYSTYPE llvmAsmlval;
+
