@@ -28,70 +28,35 @@
 //===----------------------------------------------------------------------===//
 
 #include "llvm/Analysis/Verifier.h"
+
 #include "llvm/BasicBlock.h"
-#include "llvm/ConstantPool.h"
 #include "llvm/Method.h"
 #include "llvm/Module.h"
 #include "llvm/Type.h"
 
-// Error - Define a macro to do the common task of pushing a message onto the
-// end of the error list and setting Bad to true.
-//
-#define Error(msg)                                                             \
-  do {                                                                         \
-    ErrorMsgs.push_back(msg);                                                  \
-    Bad = true;                                                                \
-  } while (0)
-
-#define t(x) (1 << (unsigned)Type::x)
-
-#define SignedIntegralTypes                                                    \
-  (t(SByteTyID) | t(ShortTyID) | t(IntTyID) | t(LongTyID))
-static const long UnsignedIntegralTypes =
-    t(UByteTyID) | t(UShortTyID) | t(UIntTyID) | t(ULongTyID);
-static const long FloatingPointTypes = t(FloatTyID) | t(DoubleTyID);
-static const long IntegralTypes = SignedIntegralTypes | UnsignedIntegralTypes;
-
-#if 0
-static long ValidTypes[Type::FirstDerivedTyID] = {
-  [(unsigned)Instruction::UnaryOps::Not] t(BoolTyID),
-  //[Instruction::UnaryOps::Add] = IntegralTypes,
-  //  [Instruction::Sub] = IntegralTypes,
-};
-#endif
-
-#undef t
-
 static bool verify(const BasicBlock *BB, std::vector<std::string> &ErrorMsgs) {
   bool Bad = false;
-  if (BB->getTerminator() == 0)
-    Error("Basic Block does not have terminator!");
-
+  if (BB->getTerminator() == 0) {
+    ErrorMsgs.push_back("Basic Block does not have terminator!");
+    Bad = true;
+  }
   return Bad;
 }
 
 bool verify(const Method *M, std::vector<std::string> &ErrorMsgs) {
   bool Bad = false;
-
-  for (Method::BasicBlocksType::const_iterator BBIt =
-           M->getBasicBlocks().begin();
-       BBIt != M->getBasicBlocks().end(); BBIt++) {
-    Bad |= verify(*BBIt, ErrorMsgs);
+  for (const BasicBlock* BB : M->getBasicBlocks()) {
+    Bad |= verify(BB, ErrorMsgs);
   }
-
   return Bad;
 }
 
 bool verify(const Module *C, std::vector<std::string> &ErrorMsgs) {
-  bool Bad = false;
   assert(Type::FirstDerivedTyID - 1 < sizeof(long) * 8 &&
          "Resize ValidTypes table to handle more than 32 primitive types!");
-
-  for (Module::MethodListType::const_iterator MI = C->getMethodList().begin();
-       MI != C->getMethodList().end(); MI++) {
-    const Method *M = *MI;
+  bool Bad = false;
+  for (const Method* M : C->getMethodList()) {
     Bad |= verify(M, ErrorMsgs);
   }
-
   return Bad;
 }
