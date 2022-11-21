@@ -20,10 +20,7 @@
 //===----------------------------------------------------------------------===//
 
 Value::Value(const Type *ty, ValueTy vty, const std::string &name)
-    : Name(name) {
-  Ty = ty;
-  VTy = vty;
-}
+    : Name(name), Ty(ty), VTy(vty) {}
 
 Value::~Value() {
 #ifndef NDEBUG // Only in -g mode...
@@ -60,13 +57,6 @@ void Value::killUse(User *i) {
 
   assert(I != Uses.end() && "Use not in uses list!!");
   Uses.erase(I);
-}
-
-User *Value::use_remove(use_iterator &I) {
-  assert(I != Uses.end() && "Trying to remove the end of the use list!!!");
-  User *i = *I;
-  I = Uses.erase(I);
-  return i;
 }
 
 //===----------------------------------------------------------------------===//

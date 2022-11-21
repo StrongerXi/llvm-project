@@ -138,11 +138,6 @@ const Type *Type::VoidTy = new Type("void", VoidTyID),
 // TODO: This should be templatized so that every derived type can use the same
 // TODO: code!
 //
-#define TEST_MERGE_TYPES 0
-
-#if TEST_MERGE_TYPES
-#include "llvm/Assembly/Writer.h"
-#endif
 
 //===----------------------------------------------------------------------===//
 //                          Derived Type Constructors
@@ -154,9 +149,7 @@ MethodType::MethodType(const Type *Result,
     : Type(Name, MethodTyID), ResultType(Result), ParamTys(Params) {}
 
 ArrayType::ArrayType(const Type *ElType, int NumEl, const std::string &Name)
-    : Type(Name, ArrayTyID), ElementType(ElType) {
-  NumElements = NumEl;
-}
+    : Type(Name, ArrayTyID), ElementType(ElType), NumElements(NumEl) {}
 
 StructType::StructType(const std::vector<const Type *> &Types,
                        const std::string &Name)
@@ -184,24 +177,10 @@ MethodType::getMethodType(const Type *ReturnType,
           break; // These types aren't equal!
 
       if (I == Params.end() && J == EParams.end()) {
-#if TEST_MERGE_TYPES == 2
-        ostream_iterator<const Type *> out(std::cerr, ", ");
-        std::cerr << "Type: \"";
-        copy(Params.begin(), Params.end(), out);
-        std::cerr << "\"\nEquals: \"";
-        copy(EParams.begin(), EParams.end(), out);
-        std::cerr << "\"" << std::endl;
-#endif
         return T;
       }
     }
   }
-#if TEST_MERGE_TYPES == 2
-  ostream_iterator<const Type *> out(std::cerr, ", ");
-  std::cerr << "Input Types: ";
-  copy(Params.begin(), Params.end(), out);
-  std::cerr << std::endl;
-#endif
 
   // Calculate the std::string name for the new type...
   std::string Name = ReturnType->getName() + " (";
@@ -211,10 +190,6 @@ MethodType::getMethodType(const Type *ReturnType,
     Name += (*I)->getName();
   }
   Name += ")";
-
-#if TEST_MERGE_TYPES
-  std::cerr << "Derived new type: " << Name << std::endl;
-#endif
 
   MethodType *Result = new MethodType(ReturnType, Params, Name);
   ExistingMethodTypesCache.push_back(Result);
@@ -244,9 +219,6 @@ const ArrayType *ArrayType::getArrayType(const Type *ElementType,
   ArrayType *Result = new ArrayType(ElementType, NumElements, Name + "]");
   ExistingTypesCache.push_back(Result);
 
-#if TEST_MERGE_TYPES
-  std::cerr << "Derived new type: " << Result->getName() << std::endl;
-#endif
   return Result;
 }
 
@@ -264,24 +236,9 @@ const StructType *StructType::getStructType(const ElementTypes &ETypes) {
         break; // These types aren't equal!
 
     if (I == ETypes.end() && J == Elements.end()) {
-#if TEST_MERGE_TYPES == 2
-      ostream_iterator<const Type *> out(std::cerr, ", ");
-      std::cerr << "Type: \"";
-      copy(ETypes.begin(), ETypes.end(), out);
-      std::cerr << "\"\nEquals: \"";
-      copy(Elements.begin(), Elements.end(), out);
-      std::cerr << "\"" << std::endl;
-#endif
       return T;
     }
   }
-
-#if TEST_MERGE_TYPES == 2
-  ostream_iterator<const Type *> out(std::cerr, ", ");
-  std::cerr << "Input Types: ";
-  copy(ETypes.begin(), ETypes.end(), out);
-  std::cerr << std::endl;
-#endif
 
   // Calculate the std::string name for the new type...
   std::string Name = "{ ";
@@ -292,10 +249,6 @@ const StructType *StructType::getStructType(const ElementTypes &ETypes) {
     Name += (*I)->getName();
   }
   Name += " }";
-
-#if TEST_MERGE_TYPES
-  std::cerr << "Derived new type: " << Name << std::endl;
-#endif
 
   StructType *Result = new StructType(ETypes, Name);
   ExistingStructTypesCache.push_back(Result);
@@ -316,8 +269,5 @@ const PointerType *PointerType::getPointerType(const Type *ValueType) {
   PointerType *Result = new PointerType(ValueType);
   ExistingTypesCache.push_back(Result);
 
-#if TEST_MERGE_TYPES
-  std::cerr << "Derived new type: " << Result->getName() << std::endl;
-#endif
   return Result;
 }

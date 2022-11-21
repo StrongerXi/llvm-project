@@ -34,13 +34,10 @@ public:
 private:
   std::list<User *> Uses;
   std::string Name;
-  const Type *Ty;
-  ValueTy VTy;
+  const Type *const Ty;
+  const ValueTy VTy;
 
   Value(const Value &); // Do not implement
-protected:
-  inline void setType(const Type *ty) { Ty = ty; }
-
 public:
   Value(const Type *Ty, ValueTy vty, const std::string &name = "");
   virtual ~Value();
@@ -70,9 +67,6 @@ public:
   inline use_const_iterator use_begin() const { return Uses.begin(); }
   inline use_iterator use_end() { return Uses.end(); }
   inline use_const_iterator use_end() const { return Uses.end(); }
-
-  inline void use_push_back(User *I) { Uses.push_back(I); }
-  User *use_remove(use_iterator &I);
 
   inline void addUse(User *I) { Uses.push_back(I); }
   void killUse(User *I);

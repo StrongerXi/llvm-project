@@ -88,13 +88,22 @@ public:
 class BinaryOperator : public Instruction {
   Use Source1, Source2;
 
-public:
+protected:
+  BinaryOperator(unsigned iType, Value *S1, Value *S2, const Type *outTy,
+                 const std::string &Name = "")
+      : Instruction(outTy, iType, Name), Source1(S1, this), Source2(S2, this) {
+    assert(S1 && S2 && S1->getType() == S2->getType());
+  }
+
+  // outType default to S1 type
   BinaryOperator(unsigned iType, Value *S1, Value *S2,
                  const std::string &Name = "")
       : Instruction(S1->getType(), iType, Name), Source1(S1, this),
         Source2(S2, this) {
     assert(S1 && S2 && S1->getType() == S2->getType());
   }
+
+public:
   inline ~BinaryOperator() { dropAllReferences(); }
 
   virtual Instruction *clone() const {

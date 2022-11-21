@@ -12,12 +12,10 @@
 #ifndef LLVM_VALUEHOLDER_H
 #define LLVM_VALUEHOLDER_H
 
-#include <vector>
 #include "llvm/SymTabValue.h"
 #include "llvm/SymbolTable.h"
 #include <algorithm>
-
-class SymTabValue;
+#include <vector>
 
 // ItemParentType ItemParent - I call setParent() on all of my
 // "ValueSubclass" items, and this is the value that I pass in.

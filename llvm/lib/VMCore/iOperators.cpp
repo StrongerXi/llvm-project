@@ -13,10 +13,9 @@
 
 SetCondInst::SetCondInst(BinaryOps opType, Value *S1, Value *S2,
                          const std::string &Name)
-    : BinaryOperator(opType, S1, S2, Name) {
-
+    // setcc instructions always return bool type.
+    : BinaryOperator(opType, S1, S2, Type::BoolTy, Name) {
   OpType = opType;
-  setType(Type::BoolTy); // setcc instructions always return bool type.
 
   // Make sure it's a valid type...
   assert(getOpcode() != "Invalid opcode type to SetCondInst class!");

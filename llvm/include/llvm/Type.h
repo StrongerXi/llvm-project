@@ -78,15 +78,6 @@ protected:
 public:
   virtual ~Type() {}
 
-  // isSigned - Return whether a numeric type is signed.
-  virtual bool isSigned() const { return 0; }
-
-  // isUnsigned - Return whether a numeric type is unsigned.  This is not
-  // quite the complement of isSigned... nonnumeric types return false as they
-  // do with isSigned.
-  //
-  virtual bool isUnsigned() const { return 0; }
-
   inline unsigned getUniqueID() const { return UID; }
   inline PrimitiveID getPrimitiveID() const { return ID; }
 
@@ -100,7 +91,7 @@ public:
   inline const ConstRules *getConstRules() const { return ConstRulesImpl; }
   inline void setConstRules(const ConstRules *R) const { ConstRulesImpl = R; }
 
-public: // These are the builtin types that are always available...
+  // These are the builtin types that are always available...
   static const Type *VoidTy, *BoolTy;
   static const Type *SByteTy, *UByteTy, *ShortTy, *UShortTy, *IntTy, *UIntTy,
       *LongTy, *ULongTy;

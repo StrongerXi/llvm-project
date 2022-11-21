@@ -22,14 +22,10 @@ public:
 
 private:
   const Type *ResultType;
-  ParamTypes ParamTys;
+  const ParamTypes ParamTys;
 
   MethodType(const MethodType &);                  // Do not implement
   const MethodType &operator=(const MethodType &); // Do not implement
-protected:
-  // This should really be private, but it squelches a bogus warning
-  // from GCC to make them protected:  warning: `class MethodType' only
-  // defines private constructors and has no friends
 
   // Private ctor - Only can be created by a static member...
   MethodType(const Type *Result, const std::vector<const Type *> &Params,
@@ -46,14 +42,10 @@ public:
 class ArrayType : public Type {
 private:
   const Type *ElementType;
-  int NumElements; // >= 0 for sized array, -1 for unbounded/unknown array
+  const int NumElements; // >= 0 for sized array, -1 for unbounded/unknown array
 
   ArrayType(const ArrayType &);                  // Do not implement
   const ArrayType &operator=(const ArrayType &); // Do not implement
-protected:
-  // This should really be private, but it squelches a bogus warning
-  // from GCC to make them protected:  warning: `class ArrayType' only
-  // defines private constructors and has no friends
 
   // Private ctor - Only can be created by a static member...
   ArrayType(const Type *ElType, int NumEl, const std::string &Name);
@@ -74,15 +66,10 @@ public:
   typedef std::vector<const Type *> ElementTypes;
 
 private:
-  ElementTypes ETypes;
+  const ElementTypes ETypes;
 
   StructType(const StructType &);                  // Do not implement
   const StructType &operator=(const StructType &); // Do not implement
-
-protected:
-  // This should really be private, but it squelches a bogus warning
-  // from GCC to make them protected:  warning: `class StructType' only
-  // defines private constructors and has no friends
 
   // Private ctor - Only can be created by a static member...
   StructType(const std::vector<const Type *> &Types, const std::string &Name);
@@ -98,17 +85,12 @@ private:
 
   PointerType(const PointerType &);                  // Do not implement
   const PointerType &operator=(const PointerType &); // Do not implement
-protected:
-  // This should really be private, but it squelches a bogus warning
-  // from GCC to make them protected:  warning: `class PointerType' only
-  // defines private constructors and has no friends
 
   // Private ctor - Only can be created by a static member...
   PointerType(const Type *ElType);
 
 public:
   inline const Type *getValueType() const { return ValueType; }
-
   static const PointerType *getPointerType(const Type *ElementType);
 };
 
