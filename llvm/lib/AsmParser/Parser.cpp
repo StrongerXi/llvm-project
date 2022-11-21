@@ -12,7 +12,7 @@
 // The useful interface defined by this file... Parse an ascii file, and return
 // the internal representation in a nice slice'n'dice'able representation.
 //
-Module *ParseAssemblyFile(const ToolCommandLine &Opts) throw(ParseException) {
+Module *ParseAssemblyFile(const ToolCommandLine &Opts) {
   FILE *F = stdin;
 
   if (Opts.getInputFilename() != "-")

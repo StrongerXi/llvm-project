@@ -10,6 +10,7 @@
 #include "llvm/Module.h"
 #include "llvm/SymbolTable.h"
 #include "llvm/iOther.h"
+#include <functional>
 
 Method::Method(const MethodType *Ty, const std::string &name)
     : SymTabValue(Ty, Value::MethodVal, name), BasicBlocks(this),
@@ -66,5 +67,5 @@ const MethodType *Method::getMethodType() const {
 //
 void Method::dropAllReferences() {
   for_each(BasicBlocks.begin(), BasicBlocks.end(),
-           std::mem_fun(&BasicBlock::dropAllReferences));
+           std::mem_fn(&BasicBlock::dropAllReferences));
 }

@@ -10,6 +10,7 @@
 #include "llvm/SymbolTable.h"
 #include "llvm/Type.h"
 #include "llvm/iTerminators.h"
+#include <functional>
 
 BasicBlock::BasicBlock(const std::string &name, Method *parent)
     : Value(Type::LabelTy, Value::BasicBlockVal, name), InstList(this, 0) {
@@ -63,7 +64,7 @@ const TerminatorInst *BasicBlock::getTerminator() const {
 
 void BasicBlock::dropAllReferences() {
   for_each(InstList.begin(), InstList.end(),
-           std::mem_fun(&Instruction::dropAllReferences));
+           std::mem_fn(&Instruction::dropAllReferences));
 }
 
 // hasConstantPoolReferences() - This predicate is true if there is a
