@@ -24,28 +24,25 @@
 #include "llvm/Opt/AllOpts.h"
 #include "llvm/iTerminators.h"
 
+namespace {
+
 struct ConstPoolDCE {
-  enum { EndOffs = 0 };
   static bool isDCEable(const Value *) { return true; }
 };
 
 struct BasicBlockDCE {
-  enum { EndOffs = 1 };
-  static bool isDCEable(const Instruction *I) { return !I->hasSideEffects(); }
+  static bool isDCEable(const Instruction *I) {
+    return !I->isTerminator() && !I->hasSideEffects();
+  }
 };
 
-template <class ValueSubclass, class ItemParentType, class DCEController>
-static bool RemoveUnusedDefs(ValueHolder<ValueSubclass, ItemParentType> &Vals,
-                             DCEController /* DCEControl */) {
+template <class DCEController, class ValueSubclass, class ItemParentType>
+bool RemoveUnusedDefs(ValueHolder<ValueSubclass, ItemParentType> &Vals) {
   bool Changed = false;
-  typedef ValueHolder<ValueSubclass, ItemParentType> Container;
-
-  int Offset = DCEController::EndOffs;
-  for (typename Container::iterator DI = Vals.begin();
-       DI != Vals.end() - Offset;) {
+  for (auto DI = Vals.begin(); DI != Vals.end();) {
     // Look for un"used" definitions...
-    if ((*DI)->use_empty() && DCEController::isDCEable(*DI)) {
-      // Bye bye
+    const auto *val = *DI;
+    if (val->use_empty() && DCEController::isDCEable(val)) {
       delete Vals.remove(DI);
       Changed = true;
     } else {
@@ -55,68 +52,57 @@ static bool RemoveUnusedDefs(ValueHolder<ValueSubclass, ItemParentType> &Vals,
   return Changed;
 }
 
-bool DoRemoveUnusedConstants(SymTabValue *S) {
-  bool Changed = false;
-  ConstantPool &CP = S->getConstantPool();
-  for (ConstantPool::plane_iterator PI = CP.begin(); PI != CP.end(); ++PI)
-    Changed |= RemoveUnusedDefs(**PI, ConstPoolDCE());
-  return Changed;
-}
-
-static void ReplaceUsesWithConstant(Instruction *I) {
-  // Get the method level constant pool
-  ConstantPool &CP = I->getParent()->getParent()->getConstantPool();
-
-  ConstPoolVal *CPV = 0;
+ConstPoolVal *getOrAddNullConstantOfType(ConstantPool &CP, const Type *type) {
+  ConstPoolVal *CPV = nullptr;
   ConstantPool::PlaneType *P;
-  if (!CP.getPlane(I->getType(), P)) { // Does plane exist?
-    // Yes, is it empty?
-    if (!P->empty())
-      CPV = P->front();
-  }
-
-  if (CPV == 0) { // We don't have an existing constant to reuse.  Just add one.
-    CPV = ConstPoolVal::getNullConstant(I->getType()); // Create a new constant
-
-    // Add the new value to the constant pool...
+  if (!CP.getPlane(type, P) && !P->empty()) {
+    CPV = P->front();
+  } else { // We don't have an existing constant to reuse. Just add one.
+    CPV = ConstPoolVal::getNullConstant(type);
     CP.insert(CPV);
   }
+  return CPV;
+}
 
-  // Make all users of this instruction reference the constant instead
+void ReplaceUsesWithConstant(Instruction *I) {
+  auto &CP = I->getParent()->getParent()->getConstantPool();
+  auto *CPV = getOrAddNullConstantOfType(CP, I->getType());
   I->replaceAllUsesWith(CPV);
 }
 
-static bool DoDCEPass(Method *M) {
-  Method::BasicBlocksType::iterator BBIt;
-  Method::BasicBlocksType &BBs = M->getBasicBlocks();
+bool onlyHasOneSucc(const BasicBlock *BB) {
+  // TODO why did Chris use Terminator & unconditional-branch check?
+  auto SI = BB->succ_begin();
+  return SI != BB->succ_end() && ++SI == BB->succ_end();
+}
+
+bool onlyHasOnePred(const BasicBlock *BB) {
+  auto PI = BB->pred_begin();
+  return PI != BB->pred_end() && ++PI == BB->pred_end() &&
+         !BB->hasConstantPoolReferences();
+}
+
+bool hasNoPred(const BasicBlock *BB) {
+  return BB->pred_begin() == BB->pred_end() && !BB->hasConstantPoolReferences();
+}
+
+// except for the first (entry) block
+bool removeBBsWithoutPredecessors(Method::BasicBlocksType &BBs) {
   bool Changed = false;
-
-  // Loop through now and remove instructions that have no uses...
-  for (BBIt = BBs.begin(); BBIt != BBs.end(); BBIt++)
-    Changed |= RemoveUnusedDefs((*BBIt)->getInstList(), BasicBlockDCE());
-
-  // Scan through and remove basic blocks that have no predecessors (except,
-  // of course, the first one.  :)  (so skip first block)
-  //
-  for (BBIt = BBs.begin(), ++BBIt; BBIt != BBs.end(); BBIt++) {
+  for (auto BBIt = std::next(BBs.begin()); BBIt != BBs.end(); BBIt++) {
     BasicBlock *BB = *BBIt;
-    assert(BB->getTerminator() &&
-           "Degenerate basic block encountered!"); // Empty bb???
-
-    if (BB->pred_begin() == BB->pred_end() &&
-        !BB->hasConstantPoolReferences()) {
-
+    if (hasNoPred(BB)) {
       while (!BB->getInstList().empty()) {
-        Instruction *I = BB->getInstList().front();
+        auto IIt = BB->getInstList().begin();
+        Instruction *I = *IIt;
         // If this instruction is used, replace uses with an arbitrary
-        // constant value.  Because control flow can't get here, we don't care
-        // what we replace the value with.
+        // constant value. Because control flow can't get here, we don't care
+        // what we replace the value with. Think uninitialized variable usage.
         if (!I->use_empty())
           ReplaceUsesWithConstant(I);
 
         // Remove the instruction from the basic block
-        BasicBlock::InstListType::iterator f = BB->getInstList().begin();
-        delete BB->getInstList().remove(f);
+        delete BB->getInstList().remove(IIt);
       }
 
       delete BBs.remove(BBIt);
@@ -124,73 +110,96 @@ static bool DoDCEPass(Method *M) {
       Changed = true;
     }
   }
+  return Changed;
+}
 
-  // Loop through an merge basic blocks into their predecessor if there is only
-  // one, and if there is only one successor of the predecessor.
-  //
-  for (BBIt = BBs.begin(); BBIt != BBs.end(); BBIt++) {
-    BasicBlock *BB = *BBIt;
-
-    // Is there exactly one predecessor to this block?
-    BasicBlock::pred_iterator PI(BB->pred_begin());
-    if (PI != BB->pred_end() && ++PI == BB->pred_end() &&
-        !BB->hasConstantPoolReferences()) {
-      BasicBlock *Pred = *BB->pred_begin();
-      TerminatorInst *Term = Pred->getTerminator();
-      if (Term == 0)
-        continue; // Err... malformed basic block!
-
-      // Is it an unconditional branch?
-      if (Term->getInstType() != Instruction::Br ||
-          !((BranchInst *)Term)->isUnconditional())
-        continue; // Nope, maybe next time...
-
-      Changed = true;
-
-      // Make all branches to the predecessor now point to the successor...
-      Pred->replaceAllUsesWith(BB);
-
-      // Move all definitions in the predecessor to the successor...
-      BasicBlock::InstListType::iterator DI = Pred->getInstList().end();
-      assert(Pred->getTerminator() &&
-             "Degenerate basic block encountered!"); // Empty bb???
-      delete Pred->getInstList().remove(--DI);       // Remove terminator
-
-      while (Pred->getInstList().begin() != (DI = Pred->getInstList().end())) {
-        Instruction *Def = Pred->getInstList().remove(--DI); // Remove from end
-        BB->getInstList().push_front(Def);                   // Add to front...
-      }
-
-      // Remove basic block from the method...
-      BBs.remove(Pred);
-
-      // Always inherit predecessors name if it exists...
-      if (Pred->hasName())
-        BB->setName(Pred->getName());
-
-      // So long you waste of a basic block you...
-      delete Pred;
+//    .......
+//     \ | /
+//      pred (no other successor)
+//       |
+//       BB  (no other predecessor)
+// --->
+//    .......
+//     \ | /
+//       BB  (with pred's instructions at front)
+bool mergeBBsIntoSuccessor(Method::BasicBlocksType &BBs) {
+  bool Changed = false;
+  for (BasicBlock *BB : BBs) {
+    if (!onlyHasOnePred(BB)) {
+      continue;
     }
-  }
+    BasicBlock *Pred = *BB->pred_begin();
+    if (!onlyHasOneSucc(Pred)) {
+      continue;
+    }
+    Changed = true;
 
-  // Remove unused constants
+    // Make all branches to the predecessor now point to the successor...
+    Pred->replaceAllUsesWith(BB);
+
+    // Move all non-terminator definitions in the predecessor to the successor
+    auto TermIter = std::prev(Pred->getInstList().end());
+    delete Pred->getInstList().remove(TermIter);
+    while (!Pred->getInstList().empty()) {
+      auto LastIter = std::prev(Pred->getInstList().end());
+      Instruction *Def =
+          Pred->getInstList().remove(LastIter); // Remove last inst
+      BB->getInstList().push_front(Def);
+    }
+
+    // Always inherit predecessors name if it exists...
+    if (Pred->hasName()) {
+      BB->setName(Pred->getName());
+    }
+
+    // Remove basic block from the method...
+    BBs.remove(Pred);
+    delete Pred;
+  }
+  return Changed;
+}
+
+bool DoDCEPass(Method *M) {
+  auto &BBs = M->getBasicBlocks();
+  bool Changed = false;
+
+  // Loop through now and remove instructions that have no uses...
+  // TODO for faster convergence, use a worklist
+  for (BasicBlock *BB : BBs) {
+    Changed |= RemoveUnusedDefs<BasicBlockDCE>(BB->getInstList());
+  }
+  Changed |= removeBBsWithoutPredecessors(BBs);
+  Changed |= mergeBBsIntoSuccessor(BBs);
   Changed |= DoRemoveUnusedConstants(M);
   return Changed;
 }
+
+} // namespace
 
 // It is possible that we may require multiple passes over the code to fully
 // eliminate dead code.  Iterate until we are done.
 //
 bool DoDeadCodeElimination(Method *M) {
   bool Changed = false;
-  while (DoDCEPass(M))
+  while (DoDCEPass(M)) {
     Changed = true;
+  }
+  return Changed;
+}
+
+bool DoRemoveUnusedConstants(SymTabValue *S) {
+  bool Changed = false;
+  ConstantPool &CP = S->getConstantPool();
+  for (auto *plane : CP) {
+    Changed |= RemoveUnusedDefs<ConstPoolDCE>(*plane);
+  }
   return Changed;
 }
 
 bool DoDeadCodeElimination(Module *C) {
-  bool Val = ApplyOptToAllMethods(C, DoDeadCodeElimination);
-  while (DoRemoveUnusedConstants(C))
-    Val = true;
-  return Val;
+  bool Changed = ApplyOptToAllMethods(C, DoDeadCodeElimination);
+  while (DoRemoveUnusedConstants(C)) { // TODO global constants in module?
+    Changed = true;
+  }
+  return Changed;
 }

@@ -132,4 +132,6 @@ public:
   virtual unsigned getNumSuccessors() const { return 1 + Destinations.size(); }
 };
 
+bool isUnconditionalBranch(const TerminatorInst *Term);
+
 #endif

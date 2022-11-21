@@ -88,43 +88,16 @@ void User::replaceUsesOfWith(Value *From, Value *To) {
 //===----------------------------------------------------------------------===//
 
 SymTabValue::SymTabValue(const Type *Ty, ValueTy dty, const std::string &name)
-    : Value(Ty, dty, name), ConstPool(new ConstantPool(this)) {
-  ParentSymTab = SymTab = 0;
-}
+    : Value(Ty, dty, name), SymTab(new SymbolTable()),
+      ConstPool(new ConstantPool(this)) {}
 
 SymTabValue::~SymTabValue() {
   ConstPool->dropAllReferences();
   ConstPool->delete_all();
-  ConstPool->setParent(0);
-
   delete SymTab;
   delete ConstPool;
 }
 
 void SymTabValue::setParentSymTab(SymbolTable *ST) {
-  ParentSymTab = ST;
-  if (SymTab)
-    SymTab->setParentSymTab(ST);
-}
-
-SymbolTable *SymTabValue::getSymbolTableSure() {
-  if (!SymTab)
-    SymTab = new SymbolTable(ParentSymTab);
-  return SymTab;
-}
-
-// hasSymbolTable() - Returns true if there is a symbol table allocated to
-// this object AND if there is at least one name in it!
-//
-bool SymTabValue::hasSymbolTable() const {
-  if (!SymTab)
-    return false;
-
-  for (SymbolTable::const_iterator I = SymTab->begin(); I != SymTab->end();
-       I++) {
-    if (I->second.begin() != I->second.end())
-      return true; // Found nonempty type plane!
-  }
-
-  return false;
+  SymTab->setParentSymTab(ST);
 }

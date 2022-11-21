@@ -41,7 +41,7 @@ void BasicBlock::setParent(Method *parent) {
   InstList.setParent(parent);
 
   if (getParent() && hasName())
-    getParent()->getSymbolTableSure()->insert(this);
+    getParent()->getSymbolTable()->insert(this);
 }
 
 TerminatorInst *BasicBlock::getTerminator() {

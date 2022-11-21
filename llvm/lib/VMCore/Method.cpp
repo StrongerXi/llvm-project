@@ -39,14 +39,14 @@ void Method::setName(const std::string &name) {
     P->getSymbolTable()->remove(this);
   Value::setName(name);
   if (P && getName() != "")
-    P->getSymbolTableSure()->insert(this);
+    P->getSymbolTable()->insert(this);
 }
 
 void Method::setParent(Module *parent) {
   Parent = parent;
 
   // Relink symbol tables together...
-  setParentSymTab(Parent ? Parent->getSymbolTableSure() : 0);
+  setParentSymTab(Parent ? Parent->getSymbolTable() : 0);
 }
 
 const Type *Method::getReturnType() const {

@@ -42,12 +42,8 @@ BytecodeWriter::BytecodeWriter(std::vector<unsigned char> &o, const Module *M)
   output_vbr((unsigned)Type::FirstDerivedTyID, Out);
   align32(Out);
 
-  // Do the whole module now!
   processModule(M);
-
-  // If needed, output the symbol table for the class...
-  if (M->hasSymbolTable())
-    outputSymbolTable(*M->getSymbolTable());
+  outputSymbolTableIfNonEmpty(*M->getSymbolTable());
 }
 
 bool BytecodeWriter::processConstPool(const ConstantPool &CP, bool isMethod) {
@@ -122,16 +118,10 @@ void BytecodeWriter::outputModuleInfoBlock(const Module *M) {
 
 bool BytecodeWriter::processMethod(const Method *M) {
   BytecodeBlock MethodBlock(BytecodeFormat::Method, Out);
-
   Table.incorporateMethod(M);
-
-  if (ModuleAnalyzer::processMethod(M))
+  if (ModuleAnalyzer::processMethod(M)) // TODO ???
     return true;
-
-  // If needed, output the symbol table for the method...
-  if (M->hasSymbolTable())
-    outputSymbolTable(*M->getSymbolTable());
-
+  outputSymbolTableIfNonEmpty(*M->getSymbolTable());
   Table.purgeMethod();
   return false;
 }
@@ -141,7 +131,9 @@ bool BytecodeWriter::processBasicBlock(const BasicBlock *BB) {
   return ModuleAnalyzer::processBasicBlock(BB);
 }
 
-void BytecodeWriter::outputSymbolTable(const SymbolTable &MST) {
+void BytecodeWriter::outputSymbolTableIfNonEmpty(const SymbolTable &MST) {
+  if (MST.empty())
+    return;
   BytecodeBlock MethodBlock(BytecodeFormat::SymbolTable, Out);
 
   for (SymbolTable::const_iterator TI = MST.begin(); TI != MST.end(); TI++) {

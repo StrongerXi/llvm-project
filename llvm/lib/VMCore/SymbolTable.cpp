@@ -59,6 +59,15 @@ Value *SymbolTable::lookup(const Type *Ty, const std::string &Name) {
   return ParentSymTab ? ParentSymTab->lookup(Ty, Name) : 0;
 }
 
+bool SymbolTable::empty() const {
+  for (const auto &[_, plane] : *this) {
+    if (!plane.empty()) {
+      return true;
+    }
+  }
+  return false;
+}
+
 void SymbolTable::remove(Value *N) {
   assert(N->hasName() && "Value doesn't have name!");
   assert(type_find(N) != type_end(N->getType()) &&

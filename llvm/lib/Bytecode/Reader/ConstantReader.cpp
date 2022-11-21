@@ -221,8 +221,7 @@ bool BytecodeParser::parseConstPoolValue(const uchar *&Buf, const uchar *EndBuf,
 }
 
 bool BytecodeParser::ParseConstantPool(const uchar *&Buf, const uchar *EndBuf,
-                                       SymTabValue::ConstantPoolType &CP,
-                                       ValueTable &Tab) {
+                                       ConstantPool &CP, ValueTable &Tab) {
   while (Buf < EndBuf) {
     unsigned NumEntries, Typ;
 

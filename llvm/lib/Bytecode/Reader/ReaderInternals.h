@@ -58,7 +58,7 @@ private: // All of this data is transient across calls to ParseBytecode
   // into its slot to reserve it.  When the method is loaded, this placeholder
   // is replaced.
   //
-  std::list<std::pair<const MethodType *, unsigned> > MethodSignatureList;
+  std::list<std::pair<const MethodType *, unsigned>> MethodSignatureList;
 
 private:
   bool ParseModule(const uchar *Buf, const uchar *End, Module *&);
@@ -70,7 +70,7 @@ private:
   bool ParseRawInst(const uchar *&Buf, const uchar *End, RawInst &);
 
   bool ParseConstantPool(const uchar *&Buf, const uchar *EndBuf,
-                         SymTabValue::ConstantPoolType &CP, ValueTable &Tab);
+                         ConstantPool &CP, ValueTable &Tab);
 
   bool parseConstPoolValue(const uchar *&Buf, const uchar *End, const Type *Ty,
                            ConstPoolVal *&V);

@@ -31,7 +31,7 @@ void Instruction::setName(const std::string &name) {
     PP->getSymbolTable()->remove(this);
   Value::setName(name);
   if (PP && hasName())
-    PP->getSymbolTableSure()->insert(this);
+    PP->getSymbolTable()->insert(this);
 }
 
 Instruction *Instruction::getBinaryOperator(unsigned Op, Value *S1, Value *S2) {

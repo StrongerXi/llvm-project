@@ -123,36 +123,6 @@ const ConstPoolVal *ConstantPool::find(const ConstPoolVal *V) const {
   return *PI;
 }
 
-ConstPoolVal *ConstantPool::find(const Type *Ty) {
-  const PlaneType *P;
-  if (getPlane(Type::TypeTy, P))
-    return 0;
-
-  // TODO: This is kinda silly
-  ConstPoolType V(Ty);
-
-  PlaneType::const_iterator PI =
-      find_if(P->begin(), P->end(), EqualsConstant(&V));
-  if (PI == P->end())
-    return 0;
-  return *PI;
-}
-
-const ConstPoolVal *ConstantPool::find(const Type *Ty) const {
-  const PlaneType *P;
-  if (getPlane(Type::TypeTy, P))
-    return 0;
-
-  // TODO: This is kinda silly
-  ConstPoolType V(Ty);
-
-  PlaneType::const_iterator PI =
-      find_if(P->begin(), P->end(), EqualsConstant(&V));
-  if (PI == P->end())
-    return 0;
-  return *PI;
-}
-
 //===----------------------------------------------------------------------===//
 //                              ConstPoolVal Class
 //===----------------------------------------------------------------------===//

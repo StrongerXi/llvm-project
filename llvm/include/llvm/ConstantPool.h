@@ -59,8 +59,6 @@ public:
   //
   const ConstPoolVal *find(const ConstPoolVal *V) const;
   ConstPoolVal *find(const ConstPoolVal *V);
-  const ConstPoolVal *find(const Type *Ty) const;
-  ConstPoolVal *find(const Type *Ty);
 
   // Plane iteration support
   //

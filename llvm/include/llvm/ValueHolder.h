@@ -21,14 +21,15 @@
 // "ValueSubclass" items, and this is the value that I pass in.
 //
 template <class ValueSubclass, class ItemParentType> class ValueHolder {
-  // TODO: Should I use a deque instead of a vector?
-  std::vector<ValueSubclass *> ValueList;
+  std::list<ValueSubclass *> ValueList;
 
   ItemParentType *ItemParent;
   SymTabValue *Parent;
 
   ValueHolder(const ValueHolder &V); // DO NOT IMPLEMENT
 public:
+  // NOTE parent is optional, because Block, albeit containing instructions,
+  // doesn't have a symbol table for them.
   inline ValueHolder(ItemParentType *IP, SymTabValue *parent = 0) {
     assert(IP && "Item parent may not be null!");
     ItemParent = IP;
@@ -57,8 +58,8 @@ public:
   // sub-Definition iterator code
   //===--------------------------------------------------------------------===//
   //
-  typedef typename std::vector<ValueSubclass *>::iterator iterator;
-  typedef typename std::vector<ValueSubclass *>::const_iterator const_iterator;
+  typedef typename std::list<ValueSubclass *>::iterator iterator;
+  typedef typename std::list<ValueSubclass *>::const_iterator const_iterator;
 
   inline iterator begin() { return ValueList.begin(); }
   inline const_iterator begin() const { return ValueList.begin(); }
@@ -96,7 +97,7 @@ void ValueHolder<ValueSubclass, ItemParentType>::setParent(SymTabValue *P) {
   Parent = P;
 
   if (Parent) { // Remove all of the items from the old symbol table..
-    SymbolTable *SymTab = Parent->getSymbolTableSure();
+    SymbolTable *SymTab = Parent->getSymbolTable();
     for (iterator I = begin(); I != end(); I++)
       if ((*I)->hasName())
         SymTab->insert(*I);
@@ -142,7 +143,7 @@ void ValueHolder<ValueSubclass, ItemParentType>::push_front(
   ValueList.insert(ValueList.begin(), Inst);
 
   if (Inst->hasName() && Parent)
-    Parent->getSymbolTableSure()->insert(Inst);
+    Parent->getSymbolTable()->insert(Inst);
 }
 
 template <class ValueSubclass, class ItemParentType>
@@ -154,7 +155,7 @@ void ValueHolder<ValueSubclass, ItemParentType>::push_back(
   ValueList.push_back(Inst);
 
   if (Inst->hasName() && Parent)
-    Parent->getSymbolTableSure()->insert(Inst);
+    Parent->getSymbolTable()->insert(Inst);
 }
 
 #endif

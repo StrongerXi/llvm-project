@@ -27,7 +27,7 @@ class Type;
 // That should be much more efficient!
 //
 class SymbolTable
-    : public std::map<const Type *, std::map<const std::string, Value *> > {
+    : public std::map<const Type *, std::map<const std::string, Value *>> {
   typedef std::map<const std::string, Value *> VarMap;
   typedef std::map<const Type *, VarMap> super;
 
@@ -47,6 +47,9 @@ public:
 
   // lookup - Returns null on failure...
   Value *lookup(const Type *Ty, const std::string &name);
+
+  // true if there is no symbol in the table (ignoring parent)
+  bool empty() const;
 
   // find - returns end(Ty->getIDNumber()) on failure...
   type_iterator type_find(const Type *Ty, const std::string &name);
